@@ -1,0 +1,44 @@
+{
+  "name": "standard-redux-shape",
+  "version": "0.1.0",
+  "description": "A library to help standardize your redux state shape",
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "eslint src",
+    "prepare": "npm run lint && webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ecomfe/standard-redux-shape.git"
+  },
+  "keywords": [
+    "redux",
+    "normalize",
+    "react"
+  ],
+  "author": "otakustay",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ecomfe/standard-redux-shape/issues"
+  },
+  "homepage": "https://github.com/ecomfe/standard-redux-shape#readme",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "dependencies": {
+    "reselect": "^3.0.1",
+    "san-update": "^2.1.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015-rollup": "^3.0.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "eslint": "^4.5.0",
+    "uglifyjs-webpack-plugin": "^1.0.0-beta.2",
+    "webpack": "^3.5.5"
+  }
+}
