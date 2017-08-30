@@ -1,6 +1,6 @@
 {
   "name": "standard-redux-shape",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A library to help standardize your redux state shape",
   "main": "dist/index.js",
   "scripts": {
