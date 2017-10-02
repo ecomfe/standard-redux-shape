@@ -90,7 +90,10 @@ export const createTableUpdateReducer = (nextReducer = s => s) => (state = {}, a
     // 因为当前的系统前后端接口并不一定会返回一个完整的实体，
     // 如果之前有一个比较完整的实体已经在`state`中，后来又来了一个不完整的实体，直接覆盖会导致字段丢失，
     // 因此针对每个实体，使用的是浅合并的策略，保证第一级的字段是不会丢的
-    const merging = reduce(entities, (chain, value, key) => chain.merge(key, value), immutable(table));
+    //
+    // 由于`key`中可能存在`"."`这个符号，而`san-update`具备属性访问路径的解析，会直接认为这是一个属性访问，
+    // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
+    const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
     const [mergedTable, diff] = merging.withDiff();
     const newState =  isEmpty(diff) ? state : {...state, [tableName]: mergedTable};
     return nextReducer(newState, action);
