@@ -68,7 +68,7 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
             return state;
         }
 
-        const cacheKey = JSON.stringify(stage === 'fetch' ? payload : payload.params);
+        const cacheKey = JSON.stringify(stage === 'receive' ? payload.params : payload);
         const cacheItem = state[cacheKey] || {pendingMutex: 0, response: null, nextResponse: null};
 
         if (stage === 'accept') {
@@ -178,3 +178,42 @@ const overrideOnFree = (item, stage, response) => {
  * @return {Function} 返回一个reducer函数
  */
 export const acceptWhenNoPending = reduceQueryBy(overrideOnFree);
+
+const head = array => array[0];
+
+const isDataAvailable = (state, selectQuerySet, params) => {
+    const querySet = selectQuerySet(state);
+
+    if (!querySet) {
+        return false;
+    }
+
+    const query = querySet[JSON.stringify(params)];
+
+    return !!(query && query.response && query.response.data);
+};
+
+export const createThunkFor = (api, fetchActionType, receiveActionType, options = {}) => {
+    const {computeParams = head, once = false, selectQuerySet} = options;
+
+    return (...args) => async (dispatch, getState) => {
+        const params = computeParams(args);
+
+        if (once && isDataAvailable(getState(), selectQuerySet, params)) {
+            return;
+        }
+
+        dispatch({type: fetchActionType, payload: params});
+
+        let result = null;
+        try {
+            result = await api(params);
+        }
+        catch (ex) {
+            dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
+            return;
+        }
+
+        dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
+    };
+};

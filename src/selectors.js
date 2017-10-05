@@ -5,14 +5,7 @@
 
 import {createSelector} from 'reselect';
 
-const getOrNull = name => source => {
-    if (source == null) {
-        return null;
-    }
-
-    const value = source[name];
-    return value === undefined ? null : value;
-};
+const get = name => source => (source == null ? source : source[name]);
 
 /**
  * 根据`selectParams`返回的参数，从`selectQuery`返回的查询集里找到对应的查询
@@ -30,7 +23,7 @@ export const createQuerySelector = (selectQuery, selectParams) => createSelector
     [selectQuery, selectParams],
     (query, params) => {
         const paramsKey = JSON.stringify(params);
-        return query[paramsKey] || null;
+        return query[paramsKey];
     }
 );
 
@@ -48,7 +41,7 @@ export const createQuerySelector = (selectQuery, selectParams) => createSelector
  */
 export const createQueryResponseSelector = (selectQuery, selectParams) => createSelector(
     [createQuerySelector(selectQuery, selectParams)],
-    getOrNull('response')
+    get('response')
 );
 
 /**
@@ -59,7 +52,7 @@ export const createQueryResponseSelector = (selectQuery, selectParams) => create
  */
 export const createQueryDataSelector = (selectQuery, selectParams) => createSelector(
     [createQueryResponseSelector(selectQuery, selectParams)],
-    getOrNull('data')
+    get('data')
 );
 
 /**
@@ -70,5 +63,5 @@ export const createQueryDataSelector = (selectQuery, selectParams) => createSele
  */
 export const createQueryErrorSelector = (selectQuery, selectParams) => createSelector(
     [createQueryResponseSelector(selectQuery, selectParams)],
-    getOrNull('error')
+    get('error')
 );
