@@ -1,0 +1,18 @@
+html, body {
+    background-color: #2e343b;
+    margin: 0;
+}
+
+.header {
+    text-align: center;
+}
+
+.header h1 {
+    color: #ccc;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: #ddd;
+}
