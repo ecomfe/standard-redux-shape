@@ -330,10 +330,10 @@ export default withRouter(connect(mapStateToProps)(TodoList));
 
 ### Quick create thunk
 
-The `createThunkFor` function helps you to quick create a simple [thunk function](https://github.com/gaearon/redux-thunk) which just dispatching 2 actions around an API call function:
+The `thunkCreatorFor` function helps you to quick create a simple [thunk function](https://github.com/gaearon/redux-thunk) which just dispatching 2 actions around an API call function:
 
 ```javascript
-{Function} createThunkFor(
+{Function} thunkCreatorFor(
     {Function} api,
     {string} fetchActionType,
     {string} receiveActionType,

@@ -193,7 +193,7 @@ const isDataAvailable = (state, selectQuerySet, params) => {
     return !!(query && query.response && query.response.data);
 };
 
-export const createThunkFor = (api, fetchActionType, receiveActionType, options = {}) => {
+export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options = {}) => {
     const {computeParams = head, once = false, selectQuerySet} = options;
 
     return (...args) => async (dispatch, getState) => {

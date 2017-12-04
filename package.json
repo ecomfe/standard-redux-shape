@@ -4,7 +4,7 @@
   "description": "A library to help standardize your redux state shape",
   "main": "dist/index.js",
   "scripts": {
-    "lint": "eslint src demo",
+    "lint": "eslint src",
     "prepare": "npm run lint && npm run build",
     "start": "webpack-dev-server --config=webpack.demo.config.js",
     "build": "webpack --config=webpack.build.config.js"
