@@ -106,7 +106,8 @@ Considering that in most applications entities come from the remote server, `sta
 First or all, the `createTableUpdater` creates a function usually called `withTableUpdate` (of type `TableUpdater`), this is a higher order function which has the signature of:
 
 ```
-type TableUpdaterCreator = ({Store} store) => TableUpdater;
+type StoreResolver = () => Store;
+type TableUpdaterCreator = ({StoreResolver} resolveStore) => TableUpdater;
 type EntitySelector = ({Object} response) => Obejct;
 type TableUpdater = ({string} tableName, {EntitySelector} selectEntites) => APIWrapper;
 type APIWrapper = ({Function} api) => Function;
@@ -138,15 +139,17 @@ export const store = createStore(
     null
 );
 
-export const withTableUpdate = createTableUpdater(store);
+// fetch.js
+export const withTableUpdate = createTableUpdater(() => import('store'));
 ```
+
 
 Then we can wrap our `getTodos` API function:
 
 ```javascript
 // api.js
 
-import {withTableUpdate} from 'store';
+import {withTableUpdate} from 'fetch';
 
 const getTodos = params => {
     // ...

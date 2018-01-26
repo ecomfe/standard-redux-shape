@@ -7,6 +7,8 @@ import {immutable} from 'san-update';
 
 const UPDATE_ENTITY_TABLE = '@@standard-redux-shape/UPDATE_ENTITY_TABLE';
 
+export const updateEntityTable = (tableName, entities) => ({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+
 const isEmpty = o => {
     for (const key in o) {
         if (o.hasOwnProperty(key)) {
@@ -54,26 +56,27 @@ const reduce = (object, iteratee, initialValue) => {
  * const apiWithTableUpdate = withUsersTableUpdate(withCommitsTableUpdate(api));
  * ```
  *
- * @param {Object} store Redux store
+ * @param {Function} resolveStore An async function which returns the store object
  */
-export const createTableUpdater = ({dispatch}) => (tableName, selectEntities) => {
-    const dispatchTableUpdate = (responseData, ...args) => {
+export const createTableUpdater = resolveStore => (tableName, selectEntities) => {
+    const dispatchTableUpdate = (dispatch, responseData, ...args) => {
         const entities = selectEntities(responseData, ...args);
         dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
         return responseData;
     };
 
-    return fetchFunction => (...args) => fetchFunction(...args).then(data => dispatchTableUpdate(data, ...args));
+    return fetchFunction => (...args) => {
+        const loadingResponseAndStore = Promise.all([fetchFunction(...args), resolveStore()]);
+        return loadingResponseAndStore.then(([data, {dispatch}]) => dispatchTableUpdate(dispatch, data, ...args));
+    };
 };
 
 /**
  * 与`createTableUpdater`合作使用的reducer函数，具体参考上面的注释说明
- *
- * @param {Function} nextReducer 后续处理的reducer
  */
-export const createTableUpdateReducer = (nextReducer = s => s) => (state = {}, action) => {
+export const createTableUpdateReducer = () => (state = {}, action) => {
     if (action.type !== UPDATE_ENTITY_TABLE) {
-        return nextReducer(state, action);
+        return state;
     }
 
     const {payload: {tableName, entities}} = action;
@@ -96,5 +99,5 @@ export const createTableUpdateReducer = (nextReducer = s => s) => (state = {}, a
     const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
     const [mergedTable, diff] = merging.withDiff();
     const newState =  isEmpty(diff) ? state : {...state, [tableName]: mergedTable};
-    return nextReducer(newState, action);
+    return newState;
 };
