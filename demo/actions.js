@@ -5,7 +5,6 @@
 
 import {thunkCreatorFor} from '../src';
 import {getSummary} from './api';
-import {selectSummaryQuery} from './selectors';
 
 export const FETCH_SUMMARY = 'FETCH_SUMMARY';
 export const RECEIVE_SUMMARY = 'RECEIVE_SUMMARY';
