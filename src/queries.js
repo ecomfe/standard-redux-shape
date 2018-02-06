@@ -193,6 +193,7 @@ export const acceptWhenNoPending = reduceQueryBy(overrideOnFree);
 const head = array => array[0];
 
 const getQuery = (state, selectQuerySet, paramsKey) => {
+
     const querySet = selectQuerySet(state);
 
     return querySet ? querySet[paramsKey] : null;
