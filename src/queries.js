@@ -5,6 +5,7 @@
 import get from 'lodash.get';
 import stringify from 'json-stable-stringify';
 
+
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
 export const createQueryPayload = (params, data) => {
