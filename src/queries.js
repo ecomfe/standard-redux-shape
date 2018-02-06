@@ -182,7 +182,7 @@ export const acceptWhenNoPending = reduceQueryBy(overrideOnFree);
 
 const head = array => array[0];
 
-const getAvaliableData = (state, selectQuerySet, params) => {
+const getAvailableData = (state, selectQuerySet, params) => {
     const querySet = selectQuerySet(state);
 
     if (!querySet) {
@@ -199,10 +199,10 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
 
     return (...args) => async (dispatch, getState) => {
         const params = computeParams(args);
-        const avaliableData = once && getAvaliableData(getState(), selectQuerySet, params);
+        const availableData = once && getAvailableData(getState(), selectQuerySet, params);
 
-        if (avaliableData) {
-            return avaliableData;
+        if (availableData) {
+            return availableData;
         }
 
         dispatch({type: fetchActionType, payload: params});
