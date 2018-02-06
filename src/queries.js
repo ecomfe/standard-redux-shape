@@ -200,20 +200,19 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
         const params = computeParams(args);
 
         if (once && isDataAvailable(getState(), selectQuerySet, params)) {
-            return;
+            return null;
         }
 
         dispatch({type: fetchActionType, payload: params});
 
-        let result = null;
         try {
-            result = await api(params);
+            const result = await api(params);
+            dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
+            return result;
         }
         catch (ex) {
             dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
-            return;
+            throw ex;
         }
-
-        dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
     };
 };
