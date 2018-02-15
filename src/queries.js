@@ -199,7 +199,7 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
     const {computeParams = head, once = false, trustPending = false, selectQuerySet} = options;
     const cache = trustPending ? new Map() : null;
 
-    return (...args) => async (dispatch, getState) => {
+    return (...args) => (dispatch, getState) => {
         const params = computeParams(args);
         const paramsKey = JSON.stringify(params);
         const query = getQuery(getState(), selectQuerySet, paramsKey);
@@ -219,27 +219,28 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
 
         dispatch({type: fetchActionType, payload: params});
 
-        let result = null;
-        try {
-            const pending = api(params);
-
-            if (trustPending) {
-                cache.set(paramsKey, pending);
-            }
-
-            result = await pending;
-        }
-        catch (ex) {
-            dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
-            throw ex;
-        }
-        finally {
+        const removeCachedPending = () => {
             if (trustPending) {
                 cache.delete(paramsKey);
             }
+        };
+        const handleResult = result => {
+            removeCachedPending();
+            dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
+            return result;
+        };
+        const handleError = ex => {
+            removeCachedPending();
+            dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
+            throw ex;
+        };
+
+        const pending = api(params).then(handleResult, handleError);
+
+        if (trustPending) {
+            cache.set(paramsKey, pending);
         }
 
-        dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
-        return result;
+        return pending;
     };
 };
