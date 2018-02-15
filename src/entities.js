@@ -73,10 +73,12 @@ export const createTableUpdater = resolveStore => (tableName, selectEntities) =>
 
 /**
  * 与`createTableUpdater`合作使用的reducer函数，具体参考上面的注释说明
+ *
+ * @param {Function} nextReducer 后续处理的reducer
  */
-export const createTableUpdateReducer = () => (state = {}, action) => {
+export const createTableUpdateReducer = (nextReducer = s => s) => (state = {}, action) => {
     if (action.type !== UPDATE_ENTITY_TABLE) {
-        return state;
+        return nextReducer(state, action);
     }
 
     const {payload: {tableName, entities}} = action;
@@ -98,6 +100,6 @@ export const createTableUpdateReducer = () => (state = {}, action) => {
     // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
     const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
     const [mergedTable, diff] = merging.withDiff();
-    const newState =  isEmpty(diff) ? state : {...state, [tableName]: mergedTable};
-    return newState;
+    const newState = isEmpty(diff) ? state : {...state, [tableName]: mergedTable};
+    return nextReducer(newState, action);
 };
