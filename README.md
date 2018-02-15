@@ -348,6 +348,7 @@ More options can be passed via `options` parameter:
 
 - `{Function} computeParams({any} ...args)`: To compute the params for `api`.
 - `{boolean} once`: If set to `true`, `api` will not be invoked when there is already a response in store.
+- `{boolean} trustPending`: It set to `true`, thunk will immediately return if previous `api` call is still pending, in this case, the `pendingMutex` will always be `1` or `0`, it can simplify idempotent cases.
 - `{Function} selectQuerySet({any} state)`: When `once` is set to `true`, `selectQuerySet` must be provided to select the corresponding query set to determine whether response is already in store.
 
 ## Example

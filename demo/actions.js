@@ -20,6 +20,7 @@ export const fetchSummary = thunkCreatorFor(
             return 'all';
         },
         once: false,
+        trustPending: true,
         selectQuerySet: ({queries: {summary = null}}) => summary
     }
 );

@@ -5,6 +5,8 @@
 
 import {random} from 'lodash';
 
+const wait = time => new Promise(resolve => setTimeout(resolve, time));
+
 export const getSummary = () => {
     const randomData = {
         search: random(1000, 3000),
@@ -14,5 +16,5 @@ export const getSummary = () => {
         direct: random(1000, 3000)
     };
 
-    return Promise.resolve(randomData);
+    return wait(2000).then(() => randomData);
 };

@@ -62,6 +62,12 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
         [acceptActionType]: 'accept'
     };
 
+    const pendingMutexAddition = {
+        fetch: 1,
+        receive: -1,
+        accept: 0
+    };
+
     return (state = {}, {type, payload} = {}) => {
         const stage = queryStageMapping[type];
 
@@ -83,9 +89,14 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
             };
         }
 
+        const nextPendingMutex = cacheItem.pendingMutex + pendingMutexAddition[stage];
+        const newItem = nextPendingMutex === cacheItem.pendingMutex
+            ? cacheItem
+            : {...cacheItem, pendingMutex: nextPendingMutex};
+
         return {
             ...state,
-            [cacheKey]: reduceState(cacheItem, stage, payload)
+            [cacheKey]: reduceState(newItem, stage, payload)
         };
     };
 };
@@ -159,15 +170,11 @@ const overrideOnError = (item, stage, response) => {
 export const keepEarliestSuccess = reduceQueryBy(overrideOnError);
 
 const overrideOnFree = (item, stage, response) => {
-    if (stage === 'fetch') {
-        return {...item, pendingMutex: item.pendingMutex + 1};
+    if (item.pendingMutex === 0) {
+        return {...item, response};
     }
 
-    return {
-        ...item,
-        pendingMutex: item.pendingMutex - 1,
-        response: item.pendingMutex === 1 ? response : item.response
-    };
+    return item;
 };
 
 /**
@@ -182,40 +189,57 @@ export const acceptWhenNoPending = reduceQueryBy(overrideOnFree);
 
 const head = array => array[0];
 
-const getAvailableData = (state, selectQuerySet, params) => {
+const getQuery = (state, selectQuerySet, paramsKey) => {
     const querySet = selectQuerySet(state);
 
-    if (!querySet) {
-        return null;
-    }
-
-    const query = querySet[JSON.stringify(params)];
-
-    return get(query, 'response.data', null);
+    return querySet ? querySet[paramsKey] : null;
 };
 
 export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options = {}) => {
-    const {computeParams = head, once = false, selectQuerySet} = options;
+    const {computeParams = head, once = false, trustPending = false, selectQuerySet} = options;
+    const cache = trustPending ? new Map() : null;
 
     return (...args) => async (dispatch, getState) => {
         const params = computeParams(args);
-        const availableData = once && getAvailableData(getState(), selectQuerySet, params);
+        const paramsKey = JSON.stringify(params);
+        const query = getQuery(getState(), selectQuerySet, paramsKey);
+        const availableData = once && get(query, 'response.data', null);
 
         if (availableData) {
             return availableData;
+        }
+
+        if (trustPending) {
+            const cachedPending = cache.get(paramsKey);
+
+            if (cachedPending) {
+                return cachedPending;
+            }
         }
 
         dispatch({type: fetchActionType, payload: params});
 
         let result = null;
         try {
-            result = await api(params);
+            const pending = api(params);
+
+            if (trustPending) {
+                cache.set(paramsKey, pending);
+            }
+
+            result = await pending;
         }
         catch (ex) {
             dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
             throw ex;
         }
+        finally {
+            if (trustPending) {
+                cache.delete(paramsKey);
+            }
+        }
 
         dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
+        return result;
     };
 };

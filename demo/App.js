@@ -18,9 +18,9 @@ import 'antd/dist/antd.min.css';
 class App extends PureComponent {
 
     componentDidMount() {
-        const {setInterval, fetchSummary} = this.props;
-        fetchSummary();
-        setInterval(fetchSummary, 10 * 1000);
+        const {setInterval} = this.props;
+        this.fetchSummary();
+        setInterval(this.fetchSummary, 10 * 1000);
     }
 
     componentDidUpdate(prevProps) {
@@ -43,6 +43,11 @@ class App extends PureComponent {
     acceptSummary() {
         this.props.acceptSummary();
         notification.close('newSummary');
+    }
+
+    @bind()
+    fetchSummary() {
+        this.props.fetchSummary();
     }
 
     render() {
@@ -119,7 +124,8 @@ class App extends PureComponent {
             <div>
                 <header className="header">
                     <h1>PV Source</h1>
-                    <span className="subtitle">Data refreshes every 10 seconds</span>
+                    <span className="subtitle">Data refreshes every 10 seconds.</span>
+                    <a onClick={this.fetchSummary}>[Fetch Now]</a>
                 </header>
                 <ECharts style={{height: 600}} option={options} />
             </div>
