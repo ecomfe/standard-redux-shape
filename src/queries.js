@@ -2,6 +2,7 @@
  * @file 控制标准Redux Store结构的相关辅助工具
  * @author zhanglili
  */
+import {get} from 'lodash';
 
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
@@ -181,16 +182,16 @@ export const acceptWhenNoPending = reduceQueryBy(overrideOnFree);
 
 const head = array => array[0];
 
-const isDataAvailable = (state, selectQuerySet, params) => {
+const getAvailableData = (state, selectQuerySet, params) => {
     const querySet = selectQuerySet(state);
 
     if (!querySet) {
-        return false;
+        return null;
     }
 
     const query = querySet[JSON.stringify(params)];
 
-    return !!(query && query.response && query.response.data);
+    return get(query, 'response.data', null);
 };
 
 export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options = {}) => {
@@ -198,9 +199,10 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
 
     return (...args) => async (dispatch, getState) => {
         const params = computeParams(args);
+        const availableData = once && getAvailableData(getState(), selectQuerySet, params);
 
-        if (once && isDataAvailable(getState(), selectQuerySet, params)) {
-            return;
+        if (availableData) {
+            return availableData;
         }
 
         dispatch({type: fetchActionType, payload: params});
@@ -211,7 +213,7 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
         }
         catch (ex) {
             dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
-            return;
+            throw ex;
         }
 
         dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
