@@ -202,8 +202,7 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
     return (...args) => (dispatch, getState) => {
         const params = computeParams(args);
         const paramsKey = JSON.stringify(params);
-        const query = getQuery(getState(), selectQuerySet, paramsKey);
-        const availableData = once && get(query, 'response.data', null);
+        const availableData = once && get(getQuery(getState(), selectQuerySet, paramsKey), 'response.data', null);
 
         if (availableData) {
             return availableData;
