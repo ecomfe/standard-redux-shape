@@ -4,6 +4,7 @@
  */
 
 import {immutable} from 'san-update';
+import {identity} from 'lodash/fp';
 
 const UPDATE_ENTITY_TABLE = '@@standard-redux-shape/UPDATE_ENTITY_TABLE';
 
@@ -58,7 +59,7 @@ const reduce = (object, iteratee, initialValue) => {
  *
  * @param {Function} resolveStore An async function which returns the store object
  */
-export const createTableUpdater = resolveStore => (tableName, selectEntities) => {
+export const createTableUpdater = resolveStore => (tableName, selectEntities = identity) => {
     const dispatchTableUpdate = (dispatch, responseData, ...args) => {
         const entities = selectEntities(responseData, ...args);
         dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
