@@ -205,7 +205,7 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
         const availableData = once && get(getQuery(getState(), selectQuerySet, paramsKey), 'response.data', null);
 
         if (availableData) {
-            return availableData;
+            return Promise.resolve(availableData);
         }
 
         if (trustPending) {
