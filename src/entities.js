@@ -75,8 +75,12 @@ export const createTableUpdater = resolveStore => (tableName, selectEntities) =>
  * 与`createTableUpdater`合作使用的reducer函数，具体参考上面的注释说明
  *
  * @param {Function} nextReducer 后续处理的reducer
+ * @param {Function} customMerger 用户自定义的合并 table 的方法
  */
-export const createTableUpdateReducer = (nextReducer = s => s) => (state = {}, action) => {
+export const createTableUpdateReducer = (
+    nextReducer = s => s,
+    customMerger = ({next}) => next()
+) => (state = {}, action) => {
     if (action.type !== UPDATE_ENTITY_TABLE) {
         return nextReducer(state, action);
     }
@@ -94,12 +98,19 @@ export const createTableUpdateReducer = (nextReducer = s => s) => (state = {}, a
 
     // 因为当前的系统前后端接口并不一定会返回一个完整的实体，
     // 如果之前有一个比较完整的实体已经在`state`中，后来又来了一个不完整的实体，直接覆盖会导致字段丢失，
-    // 因此针对每个实体，使用的是浅合并的策略，保证第一级的字段是不会丢的
+    // 因此默认针对每个实体，使用的是浅合并的策略，保证第一级的字段是不会丢的；更复杂场景下，由用户在 customMerger 中自行处理
     //
     // 由于`key`中可能存在`"."`这个符号，而`san-update`具备属性访问路径的解析，会直接认为这是一个属性访问，
     // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
-    const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
-    const [mergedTable, diff] = merging.withDiff();
+    // const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
+    const defaultMerger = () => {
+        const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
+        return merging.withDiff();
+    };
+
+    const [mergedTable, diff] = customMerger({tableName, table, patch: entities, next: defaultMerger});
+
     const newState = isEmpty(diff) ? state : {...state, [tableName]: mergedTable};
+
     return nextReducer(newState, action);
 };
