@@ -79,7 +79,7 @@ export const createTableUpdater = resolveStore => (tableName, selectEntities) =>
  */
 export const createTableUpdateReducer = (
     nextReducer = s => s,
-    customMerger = (_1, _2, _3, next) => next()
+    customMerger = (tableName, table, entities, defaultMerger) => defaultMerger()
 ) => (state = {}, action) => {
     if (action.type !== UPDATE_ENTITY_TABLE) {
         return nextReducer(state, action);
