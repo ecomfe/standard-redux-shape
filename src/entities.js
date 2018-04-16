@@ -79,7 +79,7 @@ export const createTableUpdater = resolveStore => (tableName, selectEntities) =>
  */
 export const createTableUpdateReducer = (
     nextReducer = s => s,
-    customMerger = ({next}) => next()
+    customMerger = (_1, _2, _3, next) => next()
 ) => (state = {}, action) => {
     if (action.type !== UPDATE_ENTITY_TABLE) {
         return nextReducer(state, action);
@@ -102,15 +102,15 @@ export const createTableUpdateReducer = (
     //
     // 由于`key`中可能存在`"."`这个符号，而`san-update`具备属性访问路径的解析，会直接认为这是一个属性访问，
     // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
-    // const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
     const defaultMerger = () => {
         const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
-        return merging.withDiff();
+        const[mergedTable, diff] = merging.withDiff();
+        return isEmpty(diff) ? table : mergedTable;
     };
 
-    const [mergedTable, diff] = customMerger({tableName, table, patch: entities, next: defaultMerger});
+    const mergedTable = customMerger(tableName, table, entities, defaultMerger);
 
-    const newState = isEmpty(diff) ? state : {...state, [tableName]: mergedTable};
+    const newState = mergedTable === table ? state : {...state, [tableName]: mergedTable};
 
     return nextReducer(newState, action);
 };
