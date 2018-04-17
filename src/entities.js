@@ -62,10 +62,9 @@ export const createTableUpdater = resolveStore => (selectEntities, tableName) =>
     const dispatchTableUpdate = (dispatch, responseData, ...args) => {
         const entities = selectEntities(responseData, ...args);
 
-        if (tableNames == null) {
-            Object.keys(entities).forEach(entityKey => {
-                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName: entityKey, entities: entities[entityKey]}});
-            });
+        if (!tableName) {
+            const dispatchUpdate = ([tableName, entities]) => dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+            Object.entries(entities).forEach(dispatchUpdate);
         }
         else {
             dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
