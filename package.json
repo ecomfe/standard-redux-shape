@@ -1,11 +1,11 @@
 {
   "name": "standard-redux-shape",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "A library to help standardize your redux state shape",
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint src",
-    "prepare": "npm run lint && npm run build",
+    "prepublishOnly": "npm run lint && npm run build",
     "start": "webpack-dev-server --config=webpack.demo.config.js",
     "build": "webpack --config=webpack.build.config.js"
   },
