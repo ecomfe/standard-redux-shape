@@ -58,10 +58,18 @@ const reduce = (object, iteratee, initialValue) => {
  *
  * @param {Function} resolveStore An async function which returns the store object
  */
-export const createTableUpdater = resolveStore => (tableName, selectEntities) => {
+export const createTableUpdater = resolveStore => (selectEntities, tableName) => {
     const dispatchTableUpdate = (dispatch, responseData, ...args) => {
         const entities = selectEntities(responseData, ...args);
-        dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+
+        if (!tableName) {
+            const dispatchUpdate = ([tableName, entities]) => dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+            Object.entries(entities).forEach(dispatchUpdate);
+        }
+        else {
+            dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+        }
+
         return responseData;
     };
 
