@@ -2,7 +2,7 @@
  * @file 控制标准Redux Store结构的相关辅助工具
  * @author zhanglili
  */
-import {get} from 'lodash';
+import get from 'lodash.get';
 
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
