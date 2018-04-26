@@ -4,6 +4,7 @@
  */
 
 import {immutable} from 'san-update';
+import toPairs from 'lodash.topairs';
 
 const UPDATE_ENTITY_TABLE = '@@standard-redux-shape/UPDATE_ENTITY_TABLE';
 
@@ -62,12 +63,13 @@ export const createTableUpdater = resolveStore => (selectEntities, tableName) =>
     const dispatchTableUpdate = (dispatch, responseData, ...args) => {
         const entities = selectEntities(responseData, ...args);
 
-        if (!tableName) {
-            const dispatchUpdate = ([tableName, entities]) => dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
-            Object.entries(entities).forEach(dispatchUpdate);
+        if (tableName) {
+            dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
         }
         else {
-            dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+            for (const [tableName, entities] of toPairs(entities)) {
+                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+            }
         }
 
         return responseData;
@@ -79,46 +81,47 @@ export const createTableUpdater = resolveStore => (selectEntities, tableName) =>
     };
 };
 
+const defaultCustomMerger = (tableName, table, entities, defaultMerger) => defaultMerger();
+
 /**
  * 与`createTableUpdater`合作使用的reducer函数，具体参考上面的注释说明
  *
  * @param {Function} nextReducer 后续处理的reducer
- * @param {Function} customMerger 用户自定义的合并 table 的方法
+ * @param {Function} customMerger 用户自定义的合并table的方法
  */
-export const createTableUpdateReducer = (
-    nextReducer = s => s,
-    customMerger = (tableName, table, entities, defaultMerger) => defaultMerger()
-) => (state = {}, action) => {
-    if (action.type !== UPDATE_ENTITY_TABLE) {
-        return nextReducer(state, action);
-    }
+export const createTableUpdateReducer = (nextReducer = s => s, customMerger = defaultCustomMerger) => {
+    return (state = {}, action) => {
+        if (action.type !== UPDATE_ENTITY_TABLE) {
+            return nextReducer(state, action);
+        }
 
-    const {payload: {tableName, entities}} = action;
+        const {payload: {tableName, entities}} = action;
 
-    // 在第一次调用`withTableUpdate`的时候，会触发对当前表的初始化，
-    // 当然如果一个表对应多个API的话，初始化会触发多次，在按需加载的时候也可能在任意时刻触发（通过`replaceReducer`），
-    // 所以当表不存在的时候才进行赋值
-    if (!entities && !state[tableName]) {
-        return {...state, [tableName]: {}};
-    }
+        // 在第一次调用`withTableUpdate`的时候，会触发对当前表的初始化，
+        // 当然如果一个表对应多个API的话，初始化会触发多次，在按需加载的时候也可能在任意时刻触发（通过`replaceReducer`），
+        // 所以当表不存在的时候才进行赋值
+        if (!entities && !state[tableName]) {
+            return {...state, [tableName]: {}};
+        }
 
-    const table = state[tableName] || {};
+        const table = state[tableName] || {};
 
-    // 因为当前的系统前后端接口并不一定会返回一个完整的实体，
-    // 如果之前有一个比较完整的实体已经在`state`中，后来又来了一个不完整的实体，直接覆盖会导致字段丢失，
-    // 因此默认针对每个实体，使用的是浅合并的策略，保证第一级的字段是不会丢的；更复杂场景下，由用户在 customMerger 中自行处理
-    //
-    // 由于`key`中可能存在`"."`这个符号，而`san-update`具备属性访问路径的解析，会直接认为这是一个属性访问，
-    // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
-    const defaultMerger = () => {
-        const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
-        const[mergedTable, diff] = merging.withDiff();
-        return isEmpty(diff) ? table : mergedTable;
+        // 因为当前的系统前后端接口并不一定会返回一个完整的实体，
+        // 如果之前有一个比较完整的实体已经在`state`中，后来又来了一个不完整的实体，直接覆盖会导致字段丢失，
+        // 因此默认针对每个实体，使用的是浅合并的策略，保证第一级的字段是不会丢的；更复杂场景下，由用户在 customMerger 中自行处理
+        //
+        // 由于`key`中可能存在`"."`这个符号，而`san-update`具备属性访问路径的解析，会直接认为这是一个属性访问，
+        // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
+        const defaultMerger = () => {
+            const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
+            const [mergedTable, diff] = merging.withDiff();
+            return isEmpty(diff) ? table : mergedTable;
+        };
+
+        const mergedTable = customMerger(tableName, table, entities, defaultMerger);
+
+        const newState = mergedTable === table ? state : {...state, [tableName]: mergedTable};
+
+        return nextReducer(newState, action);
     };
-
-    const mergedTable = customMerger(tableName, table, entities, defaultMerger);
-
-    const newState = mergedTable === table ? state : {...state, [tableName]: mergedTable};
-
-    return nextReducer(newState, action);
 };
