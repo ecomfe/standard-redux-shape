@@ -24,8 +24,8 @@ const inputOptions = {
 const build = async () => {
     const bundle = await rollup(inputOptions);
 
-    bundle.write({format: 'cjs', file: 'dist/index.js', sourcemap: true});
-    bundle.write({format: 'es', file: 'dist/index.mjs', sourcemap: true});
+    bundle.write({format: 'cjs', file: 'cjs/index.js', sourcemap: true});
+    bundle.write({format: 'es', file: 'es/index.js', sourcemap: true});
 };
 
 build();

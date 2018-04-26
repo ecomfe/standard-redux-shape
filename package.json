@@ -2,8 +2,8 @@
   "name": "standard-redux-shape",
   "version": "1.0.0",
   "description": "A library to help standardize your redux state shape",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "main": "cjs/index.js",
+  "module": "es/index.js",
   "sideEffects": false,
   "scripts": {
     "lint": "eslint src",
