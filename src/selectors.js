@@ -5,7 +5,7 @@
 
 import {createSelector} from 'reselect';
 
-const get = name => source => (source == null ? source : source[name]);
+const get = name => source => (source == null ? undefined : source[name]);
 
 /**
  * 根据`selectParams`返回的参数，从`selectQuery`返回的查询集里找到对应的查询
