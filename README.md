@@ -157,7 +157,7 @@ const getTodos = params => {
 
 const selectTodos = ({data}) => data.reduce((todos, todo) => ({...todos: [todo.id]: todo}), {});
 
-export const fetchTodos = withTableUpdate('todosByID', selectTodos)(getTodos);
+export const fetchTodos = withTableUpdate(selectTodos, 'todosByID')(getTodos);
 ```
 
 Every thing is done, every time when you call `fetchTodos`, a todo list is fetched from remote and the `entities.todosByID` table is automatically updated.
@@ -181,13 +181,28 @@ export const requestTodos = params => async dispatch => {
 
 ```javascript
 const selectTodos = ({todos}) => todos.reduce((todos, todo) => ({...todos: [todo.id]: todo}), {});
-const withTodosUpdate = withTableUpdate('todosByID', selectTodos);
+const withTodosUpdate = withTableUpdate(selectTodos, 'todosByID');
 
 const selectMemos = ({memos}) => memos.reduce((memos, memo) => ({...memos: [memo.id]: memo}), {});
-const withMemosUpdate = withTableUpdate('memosByID', selectMemos);
+const withMemosUpdate = withTableUpdate(selectMemos, 'memosByID');
 
 export const initializeApplication = selectMemos(selectTodos(loadIntiialData));
 ```
+
+Also you can simple make `selectEntities` function return multiple table patch:
+
+```javascript
+const selectEntities = ({todos, memos}) => {
+    return {
+        todosByID: todos.reduce((todos, todo) => ({...todos: [todo.id]: todo}), {}),
+        memosByID: memos.reduce((memos, memo) => ({...memos: [memo.id]: memo}), {})
+    };
+};
+
+export const initializeApplication = selectEntities(loadIntiialData);
+```
+
+These code are equivelent.
 
 ## Query storage
 
@@ -354,3 +369,10 @@ More options can be passed via `options` parameter:
 ## Example
 
 You can run `npm start` to start a demo, the chart uses `keepEarliest` strategy and a friendly message is displayed to user waiting their action to accept the latest data.
+
+## Change Log
+
+### 1.0.0
+
+- `createTableUpdateReducer` now accepts a `customMerger` to customize entity table merging strategy.
+- **BREAKING** `withTableUpdate`'s parameters are reversed to `(selectEntities, tableName)`, now `tableName` is optional when `selectEntities` returns multiple entity table patch.
