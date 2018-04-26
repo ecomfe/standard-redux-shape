@@ -1,11 +1,25 @@
 {
-    "presets": [
-        ["es2015", {"modules": false}],
-        "stage-0",
-        "react"
-    ],
-    "plugins": [
-        "react-require",
-        "transform-decorators-legacy"
-    ]
+    "env": {
+        "production": {
+            "presets": [
+                ["env", {"modules": false}],
+                "stage-1"
+            ],
+            "plugins": [
+                "external-helpers",
+                "transform-decorators-legacy"
+            ]
+        },
+        "demo": {
+            "presets": [
+                ["env", {"modules": false}],
+                "stage-1",
+                "react"
+            ],
+            "plugins": [
+                "react-require",
+                "transform-decorators-legacy"
+            ]
+        }
+    }
 }
