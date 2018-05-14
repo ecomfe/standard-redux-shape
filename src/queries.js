@@ -75,8 +75,9 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
             return state;
         }
 
-        const cacheKey = JSON.stringify(stage === 'receive' ? payload.params : payload);
-        const cacheItem = state[cacheKey] || {pendingMutex: 0, response: null, nextResponse: null};
+        const params = stage === 'receive' ? payload.params : payload;
+        const cacheKey = JSON.stringify(params);
+        const cacheItem = state[cacheKey] || {pendingMutex: 0, params: params, response: null, nextResponse: null};
 
         if (stage === 'accept') {
             return {
