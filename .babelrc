@@ -20,6 +20,12 @@
                 "react-require",
                 "transform-decorators-legacy"
             ]
+        },
+        "test": {
+            "presets": [
+                ["env"],
+                "stage-1"
+            ]
         }
     }
 }
