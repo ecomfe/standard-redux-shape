@@ -4,18 +4,19 @@
  */
 
 const path = require('path');
-const {LoaderOptionsPlugin} = require('webpack');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+const context = path.resolve(__dirname, '..');
+
 module.exports = {
-    devtool: 'source-map',
-    context: __dirname,
+    mode: 'development',
+    context: context,
     entry: {
-        index: './demo/index.js'
+        index: path.join(context, 'demo', 'index.js')
     },
     output: {
-        path: path.join(__dirname, 'demo', 'dist'),
+        path: path.join(context, 'demo', 'dist'),
         filename: 'index.js'
     },
     module: {
@@ -46,7 +47,6 @@ module.exports = {
         modules: ['node_modules']
     },
     plugins: [
-        new LoaderOptionsPlugin({minimize: true, debug: false}),
         new HtmlWebpackPlugin({title: 'standard-redux-shape'})
     ],
     devServer: {
