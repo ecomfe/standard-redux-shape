@@ -31,7 +31,9 @@
     "cjs",
     "es"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "json-stable-stringify": "^1.0.1"
+  },
   "devDependencies": {
     "@ecomfe/eslint-config": "^1.0.0",
     "antd": "^2.13.14",

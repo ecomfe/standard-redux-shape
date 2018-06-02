@@ -4,6 +4,7 @@
  */
 
 import {createSelector} from 'reselect';
+import stringify from 'json-stable-stringify';
 
 const get = name => source => (source == null ? undefined : source[name]);
 
@@ -22,7 +23,7 @@ const get = name => source => (source == null ? undefined : source[name]);
 export const createQuerySelector = (selectQuery, selectParams) => createSelector(
     [selectQuery, selectParams],
     (query, params) => {
-        const paramsKey = JSON.stringify(params);
+        const paramsKey = stringify(params);
         return query[paramsKey];
     }
 );

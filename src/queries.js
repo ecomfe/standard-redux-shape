@@ -3,6 +3,7 @@
  * @author zhanglili
  */
 import get from 'lodash.get';
+import stringify from 'json-stable-stringify';
 
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
@@ -76,7 +77,7 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
         }
 
         const params = stage === 'receive' ? payload.params : payload;
-        const cacheKey = JSON.stringify(params);
+        const cacheKey = stringify(params);
         const cacheItem = state[cacheKey] || {pendingMutex: 0, params: params, response: null, nextResponse: null};
 
         if (stage === 'accept') {
@@ -202,7 +203,7 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
 
     return (...args) => (dispatch, getState) => {
         const params = computeParams(args);
-        const paramsKey = JSON.stringify(params);
+        const paramsKey = stringify(params);
         const availableData = once && get(getQuery(getState(), selectQuerySet, paramsKey), 'response.data', null);
 
         if (availableData) {
