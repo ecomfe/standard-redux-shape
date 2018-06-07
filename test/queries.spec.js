@@ -47,14 +47,39 @@ describe('acceptLatest', () => {
 
     const acceptLatestReducer = acceptLatest(FETCH_TYPE, RECEIVE_TYPE);
 
-    // 这样写就需要整个 describe 里的测试一起运行
-    let state = {};
-
-    it('returns a reducer', () => {
-        state = acceptLatestReducer(state, fetchAction);
+    test('reduce first fetch action', () => {
+        const state = acceptLatestReducer({}, fetchAction);
         expect(state).toEqual(stateAfterFetch);
-        state = acceptLatestReducer(state, receiveAction);
+    });
+
+    test('reduce a receive action after fetch', () => {
+        const state = acceptLatestReducer(stateAfterFetch, receiveAction);
         expect(state).toEqual(stateAfterReceive);
+    });
+
+    const emptyResponsePayload = {
+        arrivedAt: Date.now(),
+        params,
+        data: null
+    };
+
+    const emptyReceiveAction = {
+        type: RECEIVE_TYPE,
+        payload: emptyResponsePayload
+    };
+
+    const stateAfterReceiveEmptyAction = {
+        '{"page":1}': {
+            pendingMutex: 0,
+            response: emptyResponsePayload,
+            params,
+            nextResponse: null
+        }
+    };
+
+    test('receive a null response', () => {
+        const state = acceptLatestReducer(stateAfterFetch, emptyReceiveAction);
+        expect(state).toEqual(stateAfterReceiveEmptyAction);
     });
 
     const stateAfterFetch1 = {
@@ -98,7 +123,8 @@ describe('acceptLatest', () => {
         }
     };
 
-    it('accepts the latest response', () => {
+    test('latest response data will replace the previous one', () => {
+        let state = stateAfterReceive;
         state = acceptLatestReducer(state, fetchAction);
         expect(state).toEqual(stateAfterFetch1);
         state = acceptLatestReducer(state, fetchAction);
@@ -107,7 +133,8 @@ describe('acceptLatest', () => {
         expect(state).toEqual(stateAfterReceive2);
     });
 
-    it('does not react to unknown action', () => {
+    test('not react to unknown action', () => {
+        const state = stateAfterReceive2;
         const newState = acceptLatestReducer(state, {type: OTHER_TYPE});
         expect(newState).toBe(state);
     })
