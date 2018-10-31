@@ -31,7 +31,7 @@ const reduce = (object, iteratee, initialValue) => {
  * 当传递一个`store`后，会返回一个`withTableUpdate`函数，这个函数的用法如下：
  *
  * ```javascript
- * const apiWithTableUpdate = withTableUpdate(tableName, selectEntities)(api);
+ * const apiWithTableUpdate = withTableUpdate(selectEntities, tableName)(api);
  * const response = await apiWithTableUpdate(args);
  * ```
  *
@@ -52,8 +52,8 @@ const reduce = (object, iteratee, initialValue) => {
  * ```javascript
  * import {property, keyBy} from 'lodash';
  *
- * const withUsersTableUpdate = withTableUpdate('usersByName', res => keyBy(res.users, 'username'));
- * const withCommitsTableUpdate = withTableUpdate('commitsById', res => keyBy(res.commits, 'id'));
+ * const withUsersTableUpdate = withTableUpdate(res => keyBy(res.users, 'username'), 'usersByName');
+ * const withCommitsTableUpdate = withTableUpdate(res => keyBy(res.commits, 'id'), 'commitsById');
  * const apiWithTableUpdate = withUsersTableUpdate(withCommitsTableUpdate(api));
  * ```
  *
@@ -67,7 +67,8 @@ export const createTableUpdater = resolveStore => (selectEntities, tableName) =>
             dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
         }
         else {
-            for (const [tableName, entities] of toPairs(entities)) {
+            for (const pair of toPairs(entities)) {
+                const [tableName, entities] = pair;
                 dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
             }
         }
