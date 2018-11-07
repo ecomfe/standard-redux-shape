@@ -1,6 +1,6 @@
 {
   "name": "standard-redux-shape",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A library to help standardize your redux state shape",
   "main": "cjs/index.js",
   "module": "es/index.js",
