@@ -31,7 +31,7 @@ const reduce = (object, iteratee, initialValue) => {
  * 当传递一个`store`后，会返回一个`withTableUpdate`函数，这个函数的用法如下：
  *
  * ```javascript
- * const apiWithTableUpdate = withTableUpdate(selectEntities, tableName)(api);
+ * const apiWithTableUpdate = withTableUpdate(tableName, selectEntities)(api);
  * const response = await apiWithTableUpdate(args);
  * ```
  *
@@ -67,9 +67,8 @@ export const createTableUpdater = resolveStore => (selectEntities, tableName) =>
             dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
         }
         else {
-            for (const pair of toPairs(entities)) {
-                const [tableName, entities] = pair;
-                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+            for (const [tableName, patch] of toPairs(entities)) {
+                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, patch}});
             }
         }
 
