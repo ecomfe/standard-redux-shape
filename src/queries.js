@@ -11,7 +11,7 @@ export const createQueryPayload = (params, data) => {
     return {
         arrivedAt: Date.now(),
         params: params,
-        data: data
+        data: data,
     };
 };
 
@@ -19,7 +19,7 @@ export const createQueryErrorPayload = (params, error) => {
     return {
         arrivedAt: Date.now(),
         params: params,
-        error: {message: error.message, ...error}
+        error: {message: error.message, ...error},
     };
 };
 
@@ -60,13 +60,13 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
     const queryStageMapping = {
         [fetchActionType]: 'fetch',
         [receiveActionType]: 'receive',
-        [acceptActionType]: 'accept'
+        [acceptActionType]: 'accept',
     };
 
     const pendingMutexAddition = {
         fetch: 1,
         receive: -1,
-        accept: 0
+        accept: 0,
     };
 
     return (state = {}, {type, payload} = {}) => {
@@ -86,8 +86,8 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
                 [cacheKey]: {
                     ...cacheItem,
                     response: cacheItem.nextResponse,
-                    nextResponse: null
-                }
+                    nextResponse: null,
+                },
             };
         }
 
@@ -98,7 +98,7 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
 
         return {
             ...state,
-            [cacheKey]: reduceState(newItem, stage, payload)
+            [cacheKey]: reduceState(newItem, stage, payload),
         };
     };
 };
@@ -126,7 +126,7 @@ const neverOverride = (item, stage, response) => {
         return {
             ...item,
             response: item.response ? item.response : response,
-            nextResponse: item.response ? response : null
+            nextResponse: item.response ? response : null,
         };
     }
 
@@ -151,7 +151,7 @@ const overrideOnError = (item, stage, response) => {
             return {
                 ...newItem,
                 response: response,
-                nextResponse: null
+                nextResponse: null,
             };
         }
 

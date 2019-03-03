@@ -13,7 +13,7 @@ export const getSummary = () => {
         video: random(1000, 3000),
         union: random(1000, 3000),
         email: random(1000, 3000),
-        direct: random(1000, 3000)
+        direct: random(1000, 3000),
     };
 
     return wait(2000).then(() => randomData);

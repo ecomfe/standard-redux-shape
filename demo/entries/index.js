@@ -3,12 +3,11 @@
  * @author zhanglili
  */
 
-import 'babel-polyfill';
 import {render} from 'react-dom';
 import {Provider} from 'react-redux';
-import App from './App';
-import store from './store';
-import './index.css';
+import App from '../App';
+import store from '../store';
+import '../index.css';
 
 render(
     <Provider store={store}>
