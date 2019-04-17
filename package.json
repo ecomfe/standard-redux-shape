@@ -6,7 +6,7 @@
   "module": "es/index.js",
   "sideEffects": false,
   "scripts": {
-    "test": "NODE_ENV=test jest --coverage",
+    "test": "skr test --target=node --coverage",
     "lint": "skr lint src demo *.js",
     "prepublishOnly": "yarn test && yarn run build",
     "start": "skr dev --src=demo",
@@ -47,7 +47,7 @@
     "redux": "^4.0.0",
     "redux-thunk": "^2.3.0",
     "reselect": "^3.0.1",
-    "reskript": "^0.8.0",
+    "reskript": "^0.14.3",
     "san-update": "^2.1.0",
     "webpack": "^4.10.2"
   }
