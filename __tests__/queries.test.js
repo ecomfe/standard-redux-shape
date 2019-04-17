@@ -1,4 +1,4 @@
-import {isFunction, noop} from 'lodash';
+import {isFunction} from 'lodash';
 import stringify from 'json-stable-stringify';
 import {
     createQueryPayload,
@@ -7,12 +7,12 @@ import {
     acceptLatest,
     keepEarliest,
     keepEarliestSuccess,
-    acceptWhenNoPending
+    acceptWhenNoPending,
 } from '../src';
 // types
 const FETCH = 'FETCH';
 const RECEIVE = 'RECEIVE';
-const ACCEPT= 'ACCEPT';
+const ACCEPT = 'ACCEPT';
 
 describe('createQueryPayload should', () => {
 
@@ -30,7 +30,7 @@ describe('createQueryPayload should', () => {
         const mockResult = {
             arrivedAt: now,
             params: {p: 1, q: 2},
-            data: {a: 1, b: 2}
+            data: {a: 1, b: 2},
         };
 
         const result = createQueryPayload(mockParams, mockData);
@@ -48,14 +48,14 @@ describe('createQueryErrorPayload should', () => {
 
     test('retun error data', () => {
         const mockParams = {p: 1, q: 2};
-        const mockError = {message: 'test message', a: 1, b: 2}
+        const mockError = {message: 'test message', a: 1, b: 2};
         const now = Date.now();
         Date.now = jest.fn().mockReturnValue(now);
 
         const mockResult = {
             arrivedAt: now,
             params: {p: 1, q: 2},
-            error: {message: 'test message', a: 1, b: 2}
+            error: {message: 'test message', a: 1, b: 2},
         };
 
         const result = createQueryErrorPayload(mockParams, mockError);
@@ -101,14 +101,14 @@ describe('reduceQueryBy should', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         });
     });
 
     test('pending increased when fetch again', () => {
         const params = {animal: 'dog'};
         const state = {
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         };
 
         const reduceState = s => s;
@@ -119,7 +119,7 @@ describe('reduceQueryBy should', () => {
         const newState = reducer(state, action);
 
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 2, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 2, params, response: null, nextResponse: null},
         });
     });
 
@@ -129,7 +129,7 @@ describe('reduceQueryBy should', () => {
         const nextPayload = createQueryPayload(params, {say: 'woof'});
 
         const state = {
-            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: nextPayload}
+            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: nextPayload},
         };
 
         const reducer = keepEarliest(FETCH, RECEIVE, ACCEPT);
@@ -140,7 +140,7 @@ describe('reduceQueryBy should', () => {
 
         // if there is response, then always use the response
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 0, params, response: nextPayload, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 0, params, response: nextPayload, nextResponse: null},
         });
     });
 });
@@ -157,14 +157,14 @@ describe('acceptLatest when', () => {
         const newState = reducer(state, action);
 
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         });
     });
 
     test('receive', () => {
         const params = {animal: 'cat'};
         const state = {
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         };
 
         const reducer = acceptLatest(FETCH, RECEIVE);
@@ -174,7 +174,7 @@ describe('acceptLatest when', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null},
         });
     });
 });
@@ -191,7 +191,7 @@ describe('keepEarliest when', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         });
     });
 
@@ -199,7 +199,7 @@ describe('keepEarliest when', () => {
         const params = {animal: 'cat'};
 
         const state = {
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         };
 
         const reducer = keepEarliest(FETCH, RECEIVE);
@@ -209,7 +209,7 @@ describe('keepEarliest when', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null},
         });
     });
 
@@ -219,7 +219,7 @@ describe('keepEarliest when', () => {
         const nextPayload = createQueryPayload(params, {say: 'woof'});
 
         const state = {
-            [stringify(params)]: {pendingMutex: 1, params, response: payload, nextResponse: nextPayload}
+            [stringify(params)]: {pendingMutex: 1, params, response: payload, nextResponse: nextPayload},
         };
 
         const reducer = keepEarliest(FETCH, RECEIVE);
@@ -229,7 +229,7 @@ describe('keepEarliest when', () => {
         const newState = reducer(state, action);
         // if there is response, then always use the response
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: payload}
+            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: payload},
         });
     });
 });
@@ -245,7 +245,7 @@ describe('keepEarliestSuccess when', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         });
     });
 
@@ -253,7 +253,7 @@ describe('keepEarliestSuccess when', () => {
         const params = {animal: 'cat'};
 
         const state = {
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         };
 
         const reducer = keepEarliestSuccess(FETCH, RECEIVE);
@@ -262,7 +262,7 @@ describe('keepEarliestSuccess when', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null},
         });
     });
 
@@ -271,7 +271,7 @@ describe('keepEarliestSuccess when', () => {
 
         const errorResponse = createQueryErrorPayload(params, {say: 'meow'});
         const state = {
-            [stringify(params)]: {pendingMutex: 1, params, response: errorResponse, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: errorResponse, nextResponse: null},
         };
 
         const reducer = keepEarliestSuccess(FETCH, RECEIVE);
@@ -281,7 +281,7 @@ describe('keepEarliestSuccess when', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null},
         });
     });
 });
@@ -297,7 +297,7 @@ describe('acceptWhenNoPending', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         });
     });
 
@@ -305,7 +305,7 @@ describe('acceptWhenNoPending', () => {
         const params = {animal: 'cat'};
 
         const state = {
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         };
 
         const reducer = acceptWhenNoPending(FETCH, RECEIVE);
@@ -314,7 +314,7 @@ describe('acceptWhenNoPending', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 0, params, response: payload, nextResponse: null},
         });
     });
 
@@ -322,7 +322,7 @@ describe('acceptWhenNoPending', () => {
         const params = {animal: 'cat'};
 
         const state = {
-            [stringify(params)]: {pendingMutex: 2, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 2, params, response: null, nextResponse: null},
         };
 
         const reducer = acceptWhenNoPending(FETCH, RECEIVE);
@@ -331,7 +331,7 @@ describe('acceptWhenNoPending', () => {
 
         const newState = reducer(state, action);
         expect(newState).toEqual({
-            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null}
+            [stringify(params)]: {pendingMutex: 1, params, response: null, nextResponse: null},
         });
     });
-})
+});
