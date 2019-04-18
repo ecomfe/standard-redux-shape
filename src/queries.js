@@ -222,7 +222,6 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
 
         dispatch({type: fetchActionType, payload: params});
 
-<<<<<<< HEAD
         const removeCachedPending = () => {
             if (trustPending) {
                 cache.delete(paramsKey);
@@ -235,13 +234,6 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
         };
         const handleError = ex => {
             removeCachedPending();
-=======
-        let result = null;
-        try {
-            result = await api(params);
-        }
-        catch (ex) {
->>>>>>> sync code about  thunkCreatorFor
             dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
             throw ex;
         };
@@ -252,10 +244,6 @@ export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options
             cache.set(paramsKey, pending);
         }
 
-<<<<<<< HEAD
         return pending;
-=======
-        dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
->>>>>>> sync code about  thunkCreatorFor
     };
 };
