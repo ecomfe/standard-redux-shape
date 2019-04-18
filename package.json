@@ -7,8 +7,10 @@
   "sideEffects": false,
   "scripts": {
     "test": "skr test --target=node --coverage",
-    "lint": "skr lint src demo *.js",
-    "prepublishOnly": "yarn test && yarn run build",
+    "report-cov": "cat coverage/lcov.info | coveralls",
+    "lint": "skr lint",
+    "prepublishOnly": "yarn run ci",
+    "ci": "yarn test && yarn run build",
     "start": "skr dev --src=demo",
     "build": "skr rollup --clean"
   },
@@ -33,8 +35,10 @@
   ],
   "devDependencies": {
     "antd": "^3.6.0",
+    "coveralls": "^3.0.3",
     "echarts": "^4.1.0",
     "echarts-for-react": "^2.0.11",
+    "husky": "^1.3.1",
     "json-stable-stringify": "^1.0.1",
     "lodash": "^4.17.10",
     "lodash-decorators": "^5.0.1",
@@ -50,5 +54,10 @@
     "reskript": "^0.14.3",
     "san-update": "^2.1.0",
     "webpack": "^4.10.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "skr lint --staged && yarn run test"
+    }
   }
 }
