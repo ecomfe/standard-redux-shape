@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import stringify from 'json-stable-stringify';
-import {thunkCreatorFor, createQueryPayload, createQueryErrorPayload} from '../../src';
+import {thunkCreatorFor, createQueryPayload, createQueryErrorPayload} from '../index.ts';
 
 const FETCH = 'FETCH';
 const RECEIVE = 'RECEIVE';

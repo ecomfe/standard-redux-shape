@@ -1,6 +1,5 @@
-/* eslint-disable import/no-unresolved */
 import {isFunction, noop} from 'lodash';
-import {createTableUpdater, updateEntityTable, createTableUpdateReducer} from '../../src';
+import {createTableUpdater, updateEntityTable, createTableUpdateReducer} from '../index.ts';
 
 describe('createTableUpdater should', () => {
     test('be in signature: a -> b', () => {
@@ -8,7 +7,8 @@ describe('createTableUpdater should', () => {
     });
 
     test('be in signature: a -> b -> c', () => {
-        expect(isFunction(createTableUpdater())).toBe(true);
+        const withTableUpdate = createTableUpdater();
+        expect(isFunction(withTableUpdate)).toBe(true);
     });
 
     test('be in signature: a -> b -> c -> d', () => {
@@ -128,13 +128,14 @@ describe('createTableUpdateReducer should', () => {
 
     test('test table data merged', () => {
         const updateUserTableAction = updateEntityTable('userByIds', {
-            '1': {id: 1, age: 18},
+            '1': {id: 1, age: 18, job: 'ceo'},
+            '2': {job: 'cto'},
         });
         const reducer = createTableUpdateReducer(nextReducer);
         expect(reducer(defaultTables, updateUserTableAction)).toEqual({
             userByIds: {
-                '1': {id: 1, name: 'Simon', age: 18},
-                '2': {id: 2, name: 'otakustay'},
+                '1': {id: 1, name: 'Simon', age: 18, job: 'ceo'},
+                '2': {id: 2, name: 'otakustay', job: 'cto'},
             },
         });
     });

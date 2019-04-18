@@ -3,7 +3,6 @@
  * @author zhanglili
  */
 
-import {immutable} from 'san-update';
 import toPairs from 'lodash.topairs';
 import {Reducer, Action, Dispatch} from 'redux';
 import {
@@ -22,29 +21,6 @@ export const updateEntityTable: UpdateTableActionCreator = (tableName, entities)
     type: UPDATE_ENTITY_TABLE,
     payload: {tableName, entities},
 });
-
-const isEmpty = (o?: any): boolean => {
-    for (const key in o) {
-        if (o.hasOwnProperty(key)) {
-            return false;
-        }
-    }
-
-    return true;
-};
-
-const reduce = <ReturnType>(
-    object: BasicObject,
-    iteratee: (
-        previousValue: unknown,
-        currentValue: unknown,
-        currentIndex: string
-    ) => ReturnType,
-    initialValue: any
-) => {
-    const keys = Object.keys(object);
-    return keys.reduce((result, key) => iteratee(result, object[key], key), initialValue);
-};
 
 /**
  * 创建一个用于在请求结束后更新Normalized Store中的实体数据的高阶函数
@@ -116,7 +92,36 @@ export const createTableUpdater = <EntityShapeCollection>(resolveStore: AsyncSto
     return fetch;
 };
 
+const patchEntity = (entity: BasicObject, patch: BasicObject): BasicObject => {
+    if (!entity) {
+        return patch;
+    }
+
+    let patchedEntity: BasicObject | null = null;
+
+    for (const key in patch) {
+        /* istanbul ignore next */
+        if (!patch.hasOwnProperty(key)) {
+            continue;
+        }
+
+        if (entity[key] !== patch[key]) {
+            if (!patchedEntity) {
+                patchedEntity = Object.assign({}, entity);
+            }
+
+            patchedEntity[key] = patch[key];
+        }
+    }
+
+    return patchedEntity || entity;
+};
+
 const defaultCustomMerger: Merger = (tableName, table, entities, defaultMerger) => defaultMerger();
+
+interface EntityState {
+    [entityName: string]: TableActionPayload['entities'];
+}
 
 /**
  * 与`createTableUpdater`合作使用的reducer函数，具体参考上面的注释说明
@@ -125,14 +130,12 @@ const defaultCustomMerger: Merger = (tableName, table, entities, defaultMerger) 
  * @param {Function} customMerger 用户自定义的合并table的方法
  */
 export const createTableUpdateReducer = (nextReducer: Reducer = s => s, customMerger: Merger = defaultCustomMerger) => {
-    return (state: {[key: string]: BasicObject} = {}, action: Action) => {
+    return (state: EntityState = {}, action: Action) => {
         if (action.type !== UPDATE_ENTITY_TABLE) {
             return nextReducer(state, action);
         }
 
-        const {
-            payload: {tableName, entities},
-        } = action as StandardAction<TableActionPayload>;
+        const {payload: {tableName, entities}} = action as StandardAction<TableActionPayload>;
 
         // 在第一次调用`withTableUpdate`的时候，会触发对当前表的初始化，
         // 当然如果一个表对应多个API的话，初始化会触发多次，在按需加载的时候也可能在任意时刻触发（通过`replaceReducer`），
@@ -147,17 +150,30 @@ export const createTableUpdateReducer = (nextReducer: Reducer = s => s, customMe
         // 如果之前有一个比较完整的实体已经在`state`中，后来又来了一个不完整的实体，直接覆盖会导致字段丢失，
         // 因此默认针对每个实体，使用的是浅合并的策略，保证第一级的字段是不会丢的；更复杂场景下，由用户在 customMerger 中自行处理
         //
-        // 由于`key`中可能存在`"."`这个符号，而`san-update`具备属性访问路径的解析，会直接认为这是一个属性访问，
-        // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
+        // 当实体表非常大的时候，这是一个性能要求很高的函数，因此这边没有使用任何看上去优雅的函数式编程，简单粗暴地依靠遍历来解决问题w
         const defaultMerger = () => {
-            const merging = reduce(
-                entities,
-                // TODO: sans extended object
-                (chain, value, key) => (chain as any).merge([key], value),
-                immutable(table)
-            );
-            const [mergedTable, diff] = merging.withDiff();
-            return isEmpty(diff) ? table : mergedTable;
+            let mergedTable = null;
+
+            for (const key in entities) {
+                /* istanbul ignore next */
+                if (!entities.hasOwnProperty(key)) {
+                    continue;
+                }
+
+                const previousEntity = table[key];
+                const entityPatch = entities[key];
+                const patchedEntity = patchEntity(previousEntity, entityPatch);
+
+                if (patchedEntity !== previousEntity) {
+                    if (!mergedTable) {
+                        mergedTable = Object.assign({}, table);
+                    }
+
+                    mergedTable[key] = patchedEntity;
+                }
+            }
+
+            return mergedTable || table;
         };
 
         const mergedTable = customMerger(tableName, table, entities, defaultMerger);

@@ -9,7 +9,7 @@ import {
     keepEarliest,
     keepEarliestSuccess,
     acceptWhenNoPending,
-} from '../../src';
+} from '../index.ts';
 // types
 const FETCH = 'FETCH';
 const RECEIVE = 'RECEIVE';

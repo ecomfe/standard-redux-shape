@@ -3,15 +3,15 @@ import {Action, Dispatch, AnyAction, Store} from 'redux';
 export declare type JSONLike = string | number | object | any[];
 
 export declare interface BasicObject {[key: string]: unknown}
+
 export interface ErrorType {
     message: string;
     [key: string]: unknown;
 }
+
 export interface TableActionPayload {
     tableName: string;
-    entities: {
-        [key: string]: unknown;
-    };
+    entities: {[key: string]: BasicObject};
 }
 
 export interface StandardAction<Payload = unknown> extends Action {
