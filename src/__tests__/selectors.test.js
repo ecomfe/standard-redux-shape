@@ -4,7 +4,7 @@ import {
     createQueryResponseSelector,
     createQueryDataSelector,
     createQueryErrorSelector,
-} from '../../src';
+} from '../index.ts';
 
 describe('createQuerySelector should', () => {
     const query = {};
