@@ -67,8 +67,8 @@ export const createTableUpdater = resolveStore => (selectEntities, tableName) =>
             dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
         }
         else {
-            for (const [tableName, patch] of toPairs(entities)) {
-                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities: patch}});
+            for (const [tableName, entity] of toPairs(entities)) {
+                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities: entity}});
             }
         }
 
