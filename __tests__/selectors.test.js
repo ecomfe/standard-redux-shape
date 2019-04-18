@@ -36,4 +36,3 @@ describe('createQuerySelector should', () => {
         expect(selector(state)).toBeUndefined();
     });
 });
-

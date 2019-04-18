@@ -5,7 +5,6 @@
 import get from 'lodash.get';
 import stringify from 'json-stable-stringify';
 
-
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
 export const createQueryPayload = (params, data) => {
@@ -193,7 +192,6 @@ export const acceptWhenNoPending = reduceQueryBy(overrideOnFree);
 const head = array => array[0];
 
 const getQuery = (state, selectQuerySet, paramsKey) => {
-
     const querySet = selectQuerySet(state);
 
     return querySet ? querySet[paramsKey] : null;
