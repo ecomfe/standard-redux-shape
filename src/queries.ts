@@ -4,24 +4,53 @@
  */
 import get from 'lodash.get';
 import stringify from 'json-stable-stringify';
+import {Action} from 'redux';
+import {ThunkAction} from 'redux-thunk';
+import {
+    JSONLike,
+    StandardAction,
+    QueryPayload,
+    ErrorPayload,
+    UnionPayload,
+    QueryResultShape,
+    ErrorType,
+    BasicObject,
+} from '../typings';
 
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
-export const createQueryPayload = (params, data) => {
+export const createQueryPayload = (params: JSONLike, data: unknown): QueryPayload<typeof data> => {
     return {
+        data,
+        params,
         arrivedAt: Date.now(),
-        params: params,
-        data: data,
     };
 };
 
-export const createQueryErrorPayload = (params, error) => {
+export const createQueryErrorPayload = (params: JSONLike, error: ErrorType): ErrorPayload => {
     return {
+        params,
         arrivedAt: Date.now(),
-        params: params,
         error: {message: error.message, ...error},
     };
 };
+
+enum QueryStage {
+    fetch = 'fetch',
+    receive = 'receive',
+    accept = 'accept',
+}
+
+export declare type AssignQueryResultShape<ResponseType> = {
+    response?: ResponseType;
+    nextResponse?: ResponseType;
+} & QueryResultShape;
+
+export declare type ReduceStateStrategy = (
+    item: QueryResultShape,
+    stage: QueryStage,
+    response: UnionPayload
+) => QueryResultShape | AssignQueryResultShape<typeof response>;
 
 /**
  * 创建一个更新查询状态的reducer创建函数
@@ -56,11 +85,15 @@ export const createQueryErrorPayload = (params, error) => {
  * @param {Function} reduceState 根据给定的查询状态返回新的查询状态
  * @return {Function} 一个reducer创建函数
  */
-export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType, acceptActionType = UNIQUE) => {
+export const reduceQueryBy = (reduceState: ReduceStateStrategy) => (
+    fetchActionType: string,
+    receiveActionType: string,
+    acceptActionType = UNIQUE
+) => {
     const queryStageMapping = {
-        [fetchActionType]: 'fetch',
-        [receiveActionType]: 'receive',
-        [acceptActionType]: 'accept',
+        [fetchActionType]: QueryStage.fetch,
+        [receiveActionType]: QueryStage.receive,
+        [acceptActionType]: QueryStage.accept,
     };
 
     const pendingMutexAddition = {
@@ -69,46 +102,50 @@ export const reduceQueryBy = reduceState => (fetchActionType, receiveActionType,
         accept: 0,
     };
 
-    return (state = {}, {type, payload} = {}) => {
+    return (
+        state: BasicObject = {},
+        {type, payload}: StandardAction<UnionPayload> = {} as StandardAction<UnionPayload>
+    ) => {
         const stage = queryStageMapping[type];
 
         if (!stage) {
             return state;
         }
 
-        const params = stage === 'receive' ? payload.params : payload;
+        const params = stage === QueryStage.receive ? payload.params : payload;
         const cacheKey = stringify(params);
-        const cacheItem = state[cacheKey] || {pendingMutex: 0, params: params, response: null, nextResponse: null};
+        const cacheItem = state[cacheKey] || {params, pendingMutex: 0, response: null, nextResponse: null};
 
-        if (stage === 'accept') {
+        if (stage === QueryStage.accept) {
             return {
                 ...state,
                 [cacheKey]: {
                     ...cacheItem,
-                    response: cacheItem.nextResponse,
+                    response: (cacheItem as QueryResultShape).nextResponse,
                     nextResponse: null,
                 },
             };
         }
 
-        const nextPendingMutex = cacheItem.pendingMutex + pendingMutexAddition[stage];
-        const newItem = nextPendingMutex === cacheItem.pendingMutex
-            ? cacheItem
-            : {...cacheItem, pendingMutex: nextPendingMutex};
+        const nextPendingMutex = (cacheItem as QueryResultShape).pendingMutex + pendingMutexAddition[stage];
+        const newItem =
+            nextPendingMutex === (cacheItem as QueryResultShape).pendingMutex
+                ? cacheItem
+                : {...cacheItem, pendingMutex: nextPendingMutex};
 
         return {
             ...state,
-            [cacheKey]: reduceState(newItem, stage, payload),
+            [cacheKey]: reduceState(newItem as QueryResultShape, stage, payload),
         };
     };
 };
 
-const alwaysOverride = (item, stage, response) => {
-    if (stage === 'receive') {
-        return {...item, response};
+const alwaysOverride: ReduceStateStrategy = (item, stage, response) => {
+    if (stage === QueryStage.receive) {
+        return {...item, response} as AssignQueryResultShape<typeof response>;
     }
 
-    return item;
+    return item as QueryResultShape;
 };
 
 /**
@@ -121,16 +158,16 @@ const alwaysOverride = (item, stage, response) => {
  */
 export const acceptLatest = reduceQueryBy(alwaysOverride);
 
-const neverOverride = (item, stage, response) => {
+const neverOverride: ReduceStateStrategy = (item, stage, response) => {
     if (stage === 'receive') {
         return {
             ...item,
             response: item.response ? item.response : response,
             nextResponse: item.response ? response : null,
-        };
+        } as AssignQueryResultShape<typeof response>;
     }
 
-    return item;
+    return item as QueryResultShape;
 };
 
 /**
@@ -143,22 +180,22 @@ const neverOverride = (item, stage, response) => {
  */
 export const keepEarliest = reduceQueryBy(neverOverride);
 
-const overrideOnError = (item, stage, response) => {
+const overrideOnError: ReduceStateStrategy = (item, stage, response) => {
     const newItem = neverOverride(item, stage, response);
 
-    if (stage === 'receive') {
-        if (newItem.response.error && !response.error) {
+    if (stage === QueryStage.receive) {
+        if (newItem.response!.error && !response.error) {
             return {
                 ...newItem,
-                response: response,
+                response,
                 nextResponse: null,
-            };
+            } as AssignQueryResultShape<typeof response>;
         }
 
-        return newItem;
+        return newItem as QueryResultShape;
     }
 
-    return newItem;
+    return newItem as QueryResultShape;
 };
 
 /**
@@ -171,12 +208,12 @@ const overrideOnError = (item, stage, response) => {
  */
 export const keepEarliestSuccess = reduceQueryBy(overrideOnError);
 
-const overrideOnFree = (item, stage, response) => {
+const overrideOnFree: ReduceStateStrategy = (item, stage, response) => {
     if (item.pendingMutex === 0) {
-        return {...item, response};
+        return {...item, response} as AssignQueryResultShape<typeof response>;
     }
 
-    return item;
+    return item as QueryResultShape;
 };
 
 /**
@@ -189,57 +226,81 @@ const overrideOnFree = (item, stage, response) => {
  */
 export const acceptWhenNoPending = reduceQueryBy(overrideOnFree);
 
-const head = array => array[0];
+const head = <T = any>(array: T[]) => array[0];
 
-const getQuery = (state, selectQuerySet, paramsKey) => {
+const getQuery = <StateType extends {[key: string]: any}>(
+    state: StateType,
+    selectQuerySet: (state: StateType) => Partial<StateType>,
+    paramsKey: string
+) => {
     const querySet = selectQuerySet(state);
 
     return querySet ? querySet[paramsKey] : null;
 };
 
-export const thunkCreatorFor = (api, fetchActionType, receiveActionType, options = {}) => {
+export interface ActionOptions {
+    once?: boolean;
+    trustPending?: boolean;
+    computeParams?: (params: unknown) => any;
+    selectQuerySet?: (state: unknown) => Partial<typeof state>;
+}
+
+export const thunkCreatorFor = <Reducer, State, ExtraArgumentsType, ActionType extends Action<any>>(
+    api: (params: JSONLike) => Promise<unknown>,
+    fetchActionType: string,
+    receiveActionType: string,
+    options: ActionOptions = {}
+) => {
     const {computeParams = head, once = false, trustPending = false, selectQuerySet} = options;
     const cache = trustPending ? new Map() : null;
 
-    return (...args) => (dispatch, getState) => {
+    // TODO: 这里也需要改成单参数
+    return (...args: any[]): ThunkAction<Reducer, State, ExtraArgumentsType, ActionType> => (dispatch, getState) => {
         const params = computeParams(args);
         const paramsKey = stringify(params);
-        const availableData = once && get(getQuery(getState(), selectQuerySet, paramsKey), 'response.data', null);
+        const availableData = once && get(getQuery(getState(), selectQuerySet!, paramsKey), 'response.data', null);
 
         if (availableData) {
             return Promise.resolve(availableData);
         }
 
         if (trustPending) {
-            const cachedPending = cache.get(paramsKey);
+            const cachedPending = cache!.get(paramsKey);
 
             if (cachedPending) {
                 return cachedPending;
             }
         }
 
-        dispatch({type: fetchActionType, payload: params});
+        /**
+         * ThunkDispatch的重载, 没有找到好的办法处理这个
+         * export interface ThunkDispatch<S, E, A extends Action> {
+         *   <T extends A>(action: T): T;
+         *   <R>(asyncAction: ThunkAction<R, S, E, A>): R;
+         * }
+         */
+        dispatch<any>({type: fetchActionType, payload: params});
 
         const removeCachedPending = () => {
             if (trustPending) {
-                cache.delete(paramsKey);
+                cache!.delete(paramsKey);
             }
         };
-        const handleResult = result => {
+        const handleResult = (result: unknown) => {
             removeCachedPending();
-            dispatch({type: receiveActionType, payload: createQueryPayload(params, result)});
+            dispatch<any>({type: receiveActionType, payload: createQueryPayload(params, result)});
             return result;
         };
-        const handleError = ex => {
+        const handleError = (ex: ErrorType) => {
             removeCachedPending();
-            dispatch({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
+            dispatch<any>({type: receiveActionType, payload: createQueryErrorPayload(params, ex)});
             throw ex;
         };
 
         const pending = api(params).then(handleResult, handleError);
 
         if (trustPending) {
-            cache.set(paramsKey, pending);
+            cache!.set(paramsKey, pending);
         }
 
         return pending;

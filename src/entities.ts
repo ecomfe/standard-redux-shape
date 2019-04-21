@@ -5,12 +5,26 @@
 
 import {immutable} from 'san-update';
 import toPairs from 'lodash.topairs';
+import {Reducer} from 'redux';
+import {
+    UpdateTableActionCreator,
+    TableUpdatorDispatch,
+    StandardAction,
+    TableActionPayload,
+    AsyncStoreResolver,
+    FetchProcessor,
+    BasicObject,
+    Merger,
+} from '../typings';
 
 const UPDATE_ENTITY_TABLE = '@@standard-redux-shape/UPDATE_ENTITY_TABLE';
 
-export const updateEntityTable = (tableName, entities) => ({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
+export const updateEntityTable: UpdateTableActionCreator = (tableName, entities) => ({
+    type: UPDATE_ENTITY_TABLE,
+    payload: {tableName, entities},
+});
 
-const isEmpty = o => {
+const isEmpty = (o?: any): boolean => {
     for (const key in o) {
         if (o.hasOwnProperty(key)) {
             return false;
@@ -20,7 +34,15 @@ const isEmpty = o => {
     return true;
 };
 
-const reduce = (object, iteratee, initialValue) => {
+const reduce = <ReturnType>(
+    object: BasicObject,
+    iteratee: (
+        previousValue: unknown,
+        currentValue: unknown,
+        currentIndex: string
+    ) => ReturnType,
+    initialValue: any
+) => {
     const keys = Object.keys(object);
     return keys.reduce((result, key) => iteratee(result, object[key], key), initialValue);
 };
@@ -59,29 +81,43 @@ const reduce = (object, iteratee, initialValue) => {
  *
  * @param {Function} resolveStore An async function which returns the store object
  */
-export const createTableUpdater = resolveStore => (selectEntities, tableName) => {
-    const dispatchTableUpdate = (dispatch, responseData, ...args) => {
-        const entities = selectEntities(responseData, ...args);
+export const createTableUpdater = <EntityShapeCollection>(resolveStore: AsyncStoreResolver) => <
+    PayloadType = unknown,
+    ResponseType = unknown
+>(
+    selectEntities: any,
+    tableName?: Extract<keyof EntityShapeCollection, string>
+) => {
+    const dispatchTableUpdate = (dispatch: TableUpdatorDispatch, responseData: ResponseType, payload: PayloadType) => {
+        const entities = selectEntities(responseData, payload);
 
         if (tableName) {
             dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
         }
         else {
-            for (const [tableName, patch] of toPairs(entities)) {
-                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities: patch}});
+            for (const pair of toPairs(entities)) {
+                const [tableName, entities] = pair;
+                dispatch({type: UPDATE_ENTITY_TABLE, payload: {tableName, entities}});
             }
         }
 
         return responseData;
     };
 
-    return fetchFunction => (...args) => {
-        const loadingResponseAndStore = Promise.all([fetchFunction(...args), resolveStore()]);
-        return loadingResponseAndStore.then(([data, {dispatch}]) => dispatchTableUpdate(dispatch, data, ...args));
+    const fetch: FetchProcessor<PayloadType, ResponseType> = fetchFunction => (payload, extraArgument?) => {
+        if (extraArgument) {
+            // tslint:disable-next-line no-console
+            console.warn('standart-redux-shape will no longer support passing multiple parameters to fetch function.');
+        }
+
+        const loadingResponseAndStore = Promise.all([fetchFunction(payload), resolveStore()]);
+        return loadingResponseAndStore.then(([data, {dispatch}]) => dispatchTableUpdate(dispatch, data, payload));
     };
+
+    return fetch;
 };
 
-const defaultCustomMerger = (tableName, table, entities, defaultMerger) => defaultMerger();
+const defaultCustomMerger: Merger = (tableName, table, entities, defaultMerger) => defaultMerger();
 
 /**
  * 与`createTableUpdater`合作使用的reducer函数，具体参考上面的注释说明
@@ -89,13 +125,15 @@ const defaultCustomMerger = (tableName, table, entities, defaultMerger) => defau
  * @param {Function} nextReducer 后续处理的reducer
  * @param {Function} customMerger 用户自定义的合并table的方法
  */
-export const createTableUpdateReducer = (nextReducer = s => s, customMerger = defaultCustomMerger) => {
-    return (state = {}, action) => {
+export const createTableUpdateReducer = (nextReducer: Reducer = s => s, customMerger: Merger = defaultCustomMerger) => {
+    return (state: {[key: string]: BasicObject} = {}, action: StandardAction<TableActionPayload>) => {
         if (action.type !== UPDATE_ENTITY_TABLE) {
             return nextReducer(state, action);
         }
 
-        const {payload: {tableName, entities}} = action;
+        const {
+            payload: {tableName, entities},
+        } = action;
 
         // 在第一次调用`withTableUpdate`的时候，会触发对当前表的初始化，
         // 当然如果一个表对应多个API的话，初始化会触发多次，在按需加载的时候也可能在任意时刻触发（通过`replaceReducer`），
@@ -113,7 +151,12 @@ export const createTableUpdateReducer = (nextReducer = s => s, customMerger = de
         // 由于`key`中可能存在`"."`这个符号，而`san-update`具备属性访问路径的解析，会直接认为这是一个属性访问，
         // 因此这里搞成`[key]`强制表达这个属性就是一个带点的字符串
         const defaultMerger = () => {
-            const merging = reduce(entities, (chain, value, key) => chain.merge([key], value), immutable(table));
+            const merging = reduce(
+                entities,
+                // TODO: sans extended object
+                (chain, value, key) => (chain as any).merge([key], value),
+                immutable(table)
+            );
             const [mergedTable, diff] = merging.withDiff();
             return isEmpty(diff) ? table : mergedTable;
         };

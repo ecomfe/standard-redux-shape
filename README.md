@@ -155,7 +155,7 @@ const getTodos = params => {
     // ...
 };
 
-const selectTodos = ({data}) => data.reduce((todos, todo) => ({...todos: [todo.id]: todo}), {});
+const selectTodos = ({data}) => data.reduce((todos, todo) => ({...todos, [todo.id]: todo}), {});
 
 export const fetchTodos = withTableUpdate(selectTodos, 'todosByID')(getTodos);
 ```
@@ -180,10 +180,10 @@ export const requestTodos = params => async dispatch => {
 `withTableUpdate` can also be nested to update multiple entity tables on one API call:
 
 ```javascript
-const selectTodos = ({todos}) => todos.reduce((todos, todo) => ({...todos: [todo.id]: todo}), {});
+const selectTodos = ({todos}) => todos.reduce((todos, todo) => ({...todos, [todo.id]: todo}), {});
 const withTodosUpdate = withTableUpdate(selectTodos, 'todosByID');
 
-const selectMemos = ({memos}) => memos.reduce((memos, memo) => ({...memos: [memo.id]: memo}), {});
+const selectMemos = ({memos}) => memos.reduce((memos, memo) => ({...memos, [memo.id]: memo}), {});
 const withMemosUpdate = withTableUpdate(selectMemos, 'memosByID');
 
 export const initializeApplication = selectMemos(selectTodos(loadIntiialData));
@@ -194,8 +194,8 @@ Also you can simple make `selectEntities` function return multiple table patch:
 ```javascript
 const selectEntities = ({todos, memos}) => {
     return {
-        todosByID: todos.reduce((todos, todo) => ({...todos: [todo.id]: todo}), {}),
-        memosByID: memos.reduce((memos, memo) => ({...memos: [memo.id]: memo}), {})
+        todosByID: todos.reduce((todos, todo) => ({...todos, [todo.id]: todo}), {}),
+        memosByID: memos.reduce((memos, memo) => ({...memos, [memo.id]: memo}), {})
     };
 };
 

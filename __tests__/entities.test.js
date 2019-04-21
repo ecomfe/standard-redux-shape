@@ -1,5 +1,5 @@
-import {createTableUpdater, updateEntityTable, createTableUpdateReducer} from '../src';
 import {isFunction, noop} from 'lodash';
+import {createTableUpdater, updateEntityTable, createTableUpdateReducer} from '../es';
 
 describe('createTableUpdater should', () => {
     test('be in signature: a -> b', () => {
@@ -7,7 +7,6 @@ describe('createTableUpdater should', () => {
     });
 
     test('be in signature: a -> b -> c', () => {
-        const withTableUpdate = createTableUpdater();
         expect(isFunction(createTableUpdater())).toBe(true);
     });
 
@@ -39,7 +38,7 @@ describe('createTableUpdater should', () => {
         const selectEntities = () => ({});
         const tableName = 'foo';
         const innerMostFunction = createTableUpdater(resolveStore)(selectEntities, tableName)(fetchFunction);
-        return innerMostFunction().then(data => {
+        return innerMostFunction().then(() => {
             expect(dispatch).toHaveBeenCalledTimes(1);
         });
     });
@@ -54,7 +53,7 @@ describe('createTableUpdater should', () => {
         const fetchFunction = () => Promise.resolve({});
         const selectEntities = () => selectedEntities;
         const innerMostFunction = createTableUpdater(resolveStore)(selectEntities)(fetchFunction);
-        return innerMostFunction().then(data => {
+        return innerMostFunction().then(() => {
             expect(dispatch).toHaveBeenCalledTimes(Object.keys(selectedEntities).length);
         });
     });
@@ -74,7 +73,7 @@ describe('createTableUpdater should', () => {
             payload: {tableName, entities: selectedEntities},
         };
         const innerMostFunction = createTableUpdater(resolveStore)(selectEntities, tableName)(fetchFunction);
-        return innerMostFunction().then(data => {
+        return innerMostFunction().then(() => {
             expect(dispatch).toHaveBeenCalledWith(action);
         });
     });
@@ -103,7 +102,7 @@ describe('createTableUpdater should', () => {
                 payload: {tableName: 'c', entities: null},
             },
         ];
-        return innerMostFunction().then(data => {
+        return innerMostFunction().then(() => {
             expect(dispatch).toHaveBeenNthCalledWith(1, actions[0]);
             expect(dispatch).toHaveBeenNthCalledWith(2, actions[1]);
             expect(dispatch).toHaveBeenNthCalledWith(3, actions[2]);
@@ -112,12 +111,11 @@ describe('createTableUpdater should', () => {
 });
 
 describe('createTableUpdateReducer should', () => {
-
     const defaultTables = {
         userByIds: {
             '1': {id: 1, name: 'Simon'},
-            '2': {id: 2, name: 'otakustay'}
-        }
+            '2': {id: 2, name: 'otakustay'},
+        },
     };
 
     const nextReducer = (state = {}, {type} = {}) => {
@@ -129,52 +127,52 @@ describe('createTableUpdateReducer should', () => {
 
     test('test table data merged', () => {
         const updateUserTableAction = updateEntityTable('userByIds', {
-            '1': {id: 1, age: 18}
+            '1': {id: 1, age: 18},
         });
         const reducer = createTableUpdateReducer(nextReducer);
         expect(reducer(defaultTables, updateUserTableAction)).toEqual({
             userByIds: {
                 '1': {id: 1, name: 'Simon', age: 18},
-                '2': {id: 2, name: 'otakustay'}
-            }
+                '2': {id: 2, name: 'otakustay'},
+            },
         });
     });
 
     test('have no diff table data merged', () => {
         const updateUserTableAction = updateEntityTable('userByIds', {
-            '1': {id: 1, name: 'Simon'}
+            '1': {id: 1, name: 'Simon'},
         });
         const table = {
             userByIds: {
                 '1': {id: 1, name: 'Simon'},
-            }
-        }
+            },
+        };
         const reducer = createTableUpdateReducer(nextReducer);
         // when without diff, table should be same reference
         expect(reducer(table, updateUserTableAction)).toBe(table);
     });
 
     test('not UPDATE_ENTITY_TABLE excute nextReducer', () => {
-        const otherAction = {type: 'OTHER_ACTION'}
+        const otherAction = {type: 'OTHER_ACTION'};
         const reducer = createTableUpdateReducer(nextReducer);
         expect(reducer(defaultTables, otherAction)).toEqual({
             userByIds: {
                 '1': {id: 1, name: 'Simon'},
-                '2': {id: 2, name: 'otakustay'}
-            }
+                '2': {id: 2, name: 'otakustay'},
+            },
         });
     });
 
     test('have default nextReducer', () => {
         const updateUserTableAction = updateEntityTable('userByIds', {
-            '1': {id: 1, age: 18}
+            '1': {id: 1, age: 18},
         });
         const reducer = createTableUpdateReducer();
         expect(reducer(defaultTables, updateUserTableAction)).toEqual({
             userByIds: {
                 '1': {id: 1, name: 'Simon', age: 18},
-                '2': {id: 2, name: 'otakustay'}
-            }
+                '2': {id: 2, name: 'otakustay'},
+            },
         });
     });
 
@@ -183,38 +181,37 @@ describe('createTableUpdateReducer should', () => {
 
         const reducer = createTableUpdateReducer(nextReducer);
         expect(reducer(undefined, initUpdateAction)).toEqual({
-            userByIds: {}
+            userByIds: {},
         });
-    })
+    });
 
     test('test custom merger', () => {
         const updateUserTableAction = updateEntityTable('userByIds', {
-            '1': {id: 1, age: 18}
+            '1': {id: 1, age: 18},
         });
         const customMerger = (tableName, table, entities) => {
-            const tableData = entities[tableName] || {};
             return {...table, ...entities};
         };
         const reducer = createTableUpdateReducer(nextReducer, customMerger);
         expect(reducer(defaultTables, updateUserTableAction)).toEqual({
             userByIds: {
                 '1': {id: 1, age: 18},
-                '2': {id: 2, name: 'otakustay'}
-            }
+                '2': {id: 2, name: 'otakustay'},
+            },
         });
     });
 
     test('test diff table', () => {
         const updateUserTableAction = updateEntityTable('reviewByIds', {
-            '1001': {id: 1001, diffContent: 'this is diff content'}
+            '1001': {id: 1001, diffContent: 'this is diff content'},
         });
         const reducer = createTableUpdateReducer(nextReducer);
         expect(reducer(defaultTables, updateUserTableAction)).toEqual({
             userByIds: {
                 '1': {id: 1, name: 'Simon'},
-                '2': {id: 2, name: 'otakustay'}
+                '2': {id: 2, name: 'otakustay'},
             },
-            reviewByIds: {'1001': {id: 1001, diffContent: 'this is diff content'}}
+            reviewByIds: {'1001': {id: 1001, diffContent: 'this is diff content'}},
         });
     });
 });

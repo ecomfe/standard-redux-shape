@@ -1,11 +1,10 @@
 import stringify from 'json-stable-stringify';
-import {thunkCreatorFor, createQueryPayload, createQueryErrorPayload} from '../src';
+import {thunkCreatorFor, createQueryPayload, createQueryErrorPayload} from '../es';
 
 const FETCH = 'FETCH';
 const RECEIVE = 'RECEIVE';
 
 describe('thunkCreatorFor', () => {
-
     test('basic success', async () => {
         const api = ({animal}) => {
             if (animal === 'cat') {
@@ -29,9 +28,7 @@ describe('thunkCreatorFor', () => {
 
         expect(dispatch.mock.calls.length).toBe(2);
         expect(dispatch.mock.calls[0][0]).toEqual({type: FETCH, payload: params});
-        expect(dispatch.mock.calls[1][0]).toEqual(
-            {type: RECEIVE, payload: createQueryPayload(params, {say: 'meow'})}
-        );
+        expect(dispatch.mock.calls[1][0]).toEqual({type: RECEIVE, payload: createQueryPayload(params, {say: 'meow'})});
     });
 
     test('basic error', async () => {
@@ -54,13 +51,13 @@ describe('thunkCreatorFor', () => {
         jest.spyOn(Date, 'now').mockImplementation(() => 1555496661751);
         try {
             await thunk(dispatch, () => ({}));
-        }
-        catch {
+        } catch {
             expect(dispatch.mock.calls.length).toBe(2);
             expect(dispatch.mock.calls[0][0]).toEqual({type: FETCH, payload: params});
-            expect(dispatch.mock.calls[1][0]).toEqual(
-                {type: RECEIVE, payload: createQueryErrorPayload(params, {message: 'I dont know'})}
-            );
+            expect(dispatch.mock.calls[1][0]).toEqual({
+                type: RECEIVE,
+                payload: createQueryErrorPayload(params, {message: 'I dont know'}),
+            });
         }
     });
 
@@ -80,15 +77,10 @@ describe('thunkCreatorFor', () => {
             },
         };
 
-        const fetchData = thunkCreatorFor(
-            api,
-            FETCH,
-            RECEIVE,
-            {
-                once: true,
-                selectQuerySet: state => state.users,
-            }
-        );
+        const fetchData = thunkCreatorFor(api, FETCH, RECEIVE, {
+            once: true,
+            selectQuerySet: state => state.users,
+        });
         const thunk = fetchData(params);
         const result = await thunk(dispatch, () => state);
         expect(result).toEqual(data);
@@ -102,16 +94,11 @@ describe('thunkCreatorFor', () => {
         const dispatch = jest.fn();
         const state = {};
 
-        const fetchData = thunkCreatorFor(
-            api,
-            FETCH,
-            RECEIVE,
-            {
-                once: true,
-                trustPending: true,
-                selectQuerySet: state => state.users,
-            }
-        );
+        const fetchData = thunkCreatorFor(api, FETCH, RECEIVE, {
+            once: true,
+            trustPending: true,
+            selectQuerySet: state => state.users,
+        });
         const thunk = fetchData(params);
         thunk(dispatch, () => state); // call twice
         const result = await thunk(dispatch, () => state);

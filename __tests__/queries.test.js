@@ -8,14 +8,13 @@ import {
     keepEarliest,
     keepEarliestSuccess,
     acceptWhenNoPending,
-} from '../src';
+} from '../es';
 // types
 const FETCH = 'FETCH';
 const RECEIVE = 'RECEIVE';
 const ACCEPT = 'ACCEPT';
 
 describe('createQueryPayload should', () => {
-
     test('be existed', () => {
         expect(createQueryPayload).not.toBeUndefined();
         expect(createQueryPayload).not.toBeNull();
@@ -40,7 +39,6 @@ describe('createQueryPayload should', () => {
 });
 
 describe('createQueryErrorPayload should', () => {
-
     test('be existed', () => {
         expect(createQueryErrorPayload).not.toBeUndefined();
         expect(createQueryErrorPayload).not.toBeNull();
@@ -178,7 +176,6 @@ describe('acceptLatest when', () => {
         });
     });
 });
-
 
 describe('keepEarliest when', () => {
     test('fetch', () => {
