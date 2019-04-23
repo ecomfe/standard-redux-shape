@@ -15,7 +15,7 @@ import {
     QueryResultShape,
     ErrorType,
     BasicObject,
-} from '../typings';
+} from '../types';
 
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
@@ -104,8 +104,9 @@ export const reduceQueryBy = (reduceState: ReduceStateStrategy) => (
 
     return (
         state: BasicObject = {},
-        {type, payload}: StandardAction<UnionPayload> = {} as StandardAction<UnionPayload>
+        action: Action= {} as Action
     ) => {
+        const {type, payload} = action as StandardAction<UnionPayload>;
         const stage = queryStageMapping[type];
 
         if (!stage) {

@@ -4,6 +4,6 @@
         "declaration": true,
         "noEmit": false,
         "emitDeclarationOnly": true,
-        "declarationDir": "types"
+        "declarationDir": "es"
     }
 }

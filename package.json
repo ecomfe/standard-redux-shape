@@ -4,6 +4,7 @@
   "description": "A library to help standardize your redux state shape",
   "main": "cjs/index.js",
   "module": "es/index.js",
+  "types": "es/index.d.ts",
   "sideEffects": false,
   "scripts": {
     "test": "npm run build && skr test --target=node --coverage",
@@ -12,7 +13,7 @@
     "prepublishOnly": "yarn run ci",
     "ci": "yarn test && yarn run build",
     "start": "skr dev --src=demo",
-    "build": "tsc && skr rollup --clean"
+    "build": "skr rollup --clean && tsc"
   },
   "repository": {
     "type": "git",

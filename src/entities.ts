@@ -5,17 +5,16 @@
 
 import {immutable} from 'san-update';
 import toPairs from 'lodash.topairs';
-import {Reducer} from 'redux';
+import {Reducer, Action, Dispatch} from 'redux';
 import {
     UpdateTableActionCreator,
-    TableUpdatorDispatch,
-    StandardAction,
     TableActionPayload,
+    StandardAction,
     AsyncStoreResolver,
     FetchProcessor,
     BasicObject,
     Merger,
-} from '../typings';
+} from '../types';
 
 const UPDATE_ENTITY_TABLE = '@@standard-redux-shape/UPDATE_ENTITY_TABLE';
 
@@ -82,13 +81,13 @@ const reduce = <ReturnType>(
  * @param {Function} resolveStore An async function which returns the store object
  */
 export const createTableUpdater = <EntityShapeCollection>(resolveStore: AsyncStoreResolver) => <
-    PayloadType = unknown,
+    PayloadType,
     ResponseType = unknown
 >(
     selectEntities: any,
     tableName?: Extract<keyof EntityShapeCollection, string>
 ) => {
-    const dispatchTableUpdate = (dispatch: TableUpdatorDispatch, responseData: ResponseType, payload: PayloadType) => {
+    const dispatchTableUpdate = (dispatch: Dispatch, responseData: ResponseType, payload: PayloadType) => {
         const entities = selectEntities(responseData, payload);
 
         if (tableName) {
@@ -107,7 +106,7 @@ export const createTableUpdater = <EntityShapeCollection>(resolveStore: AsyncSto
     const fetch: FetchProcessor<PayloadType, ResponseType> = fetchFunction => (payload, extraArgument?) => {
         if (extraArgument) {
             // tslint:disable-next-line no-console
-            console.warn('standart-redux-shape will no longer support passing multiple parameters to fetch function.');
+            console.warn('standard-redux-shape will no longer support passing multiple parameters to fetch function.');
         }
 
         const loadingResponseAndStore = Promise.all([fetchFunction(payload), resolveStore()]);
@@ -126,14 +125,14 @@ const defaultCustomMerger: Merger = (tableName, table, entities, defaultMerger) 
  * @param {Function} customMerger 用户自定义的合并table的方法
  */
 export const createTableUpdateReducer = (nextReducer: Reducer = s => s, customMerger: Merger = defaultCustomMerger) => {
-    return (state: {[key: string]: BasicObject} = {}, action: StandardAction<TableActionPayload>) => {
+    return (state: {[key: string]: BasicObject} = {}, action: Action) => {
         if (action.type !== UPDATE_ENTITY_TABLE) {
             return nextReducer(state, action);
         }
 
         const {
             payload: {tableName, entities},
-        } = action;
+        } = action as StandardAction<TableActionPayload>;
 
         // 在第一次调用`withTableUpdate`的时候，会触发对当前表的初始化，
         // 当然如果一个表对应多个API的话，初始化会触发多次，在按需加载的时候也可能在任意时刻触发（通过`replaceReducer`），
