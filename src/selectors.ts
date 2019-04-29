@@ -3,10 +3,16 @@
  * @author zhanglili
  */
 
-import {createSelector} from 'reselect';
+import {createSelector, OutputSelector, Selector} from 'reselect';
 import stringify from 'json-stable-stringify';
+import {JSONLike} from '../types';
 
-const get = name => source => (source == null ? undefined : source[name]);
+const get = <ReturnType>(name: string) => (source: any) => (source == null ? undefined : (source[name] as ReturnType));
+
+export declare type SelectorCreator = <State, Query = {[key: string]: any}, Params = JSONLike, ReturnType = any>(
+    selectQuery: Selector<State, Query>,
+    selectParams: Selector<State, Params>
+) => OutputSelector<State, ReturnType | undefined, (res1: Query, res2: Params) => ReturnType | undefined>;
 
 /**
  * 根据`selectParams`返回的参数，从`selectQuery`返回的查询集里找到对应的查询
@@ -20,13 +26,11 @@ const get = name => source => (source == null ? undefined : source[name]);
  * @param {Function} selectQuery 获取到整个Query集
  * @param {Function} selectParams 获取参数对象
  */
-export const createQuerySelector = (selectQuery, selectParams) => createSelector(
-    [selectQuery, selectParams],
-    (query, params) => {
+export const createQuerySelector: SelectorCreator = (selectQuery, selectParams) =>
+    createSelector([selectQuery, selectParams], (query, params) => {
         const paramsKey = stringify(params);
-        return query[paramsKey];
-    }
-);
+        return (query as any)[paramsKey];
+    });
 
 /**
  * 基于`createQuerySelector`再获取查询中的`response`对象
@@ -40,10 +44,8 @@ export const createQuerySelector = (selectQuery, selectParams) => createSelector
  * @param {Function} selectQuery 获取到整个Query集
  * @param {Function} selectParams 获取参数对象
  */
-export const createQueryResponseSelector = (selectQuery, selectParams) => createSelector(
-    [createQuerySelector(selectQuery, selectParams)],
-    get('response')
-);
+export const createQueryResponseSelector: SelectorCreator = (selectQuery, selectParams) =>
+    createSelector([createQuerySelector(selectQuery, selectParams)], get('response'));
 
 /**
  * 基于`createQueryResponseSelector`再获取查询中的`data`对象
@@ -51,10 +53,8 @@ export const createQueryResponseSelector = (selectQuery, selectParams) => create
  * @param {Function} selectQuery 获取到整个Query集
  * @param {Function} selectParams 获取参数对象
  */
-export const createQueryDataSelector = (selectQuery, selectParams) => createSelector(
-    [createQueryResponseSelector(selectQuery, selectParams)],
-    get('data')
-);
+export const createQueryDataSelector: SelectorCreator = (selectQuery, selectParams) =>
+    createSelector([createQueryResponseSelector(selectQuery, selectParams)], get('data'));
 
 /**
  * 基于`createQueryResponseSelector`再获取查询中的`error`对象
@@ -62,7 +62,5 @@ export const createQueryDataSelector = (selectQuery, selectParams) => createSele
  * @param {Function} selectQuery 获取到整个Query集
  * @param {Function} selectParams 获取参数对象
  */
-export const createQueryErrorSelector = (selectQuery, selectParams) => createSelector(
-    [createQueryResponseSelector(selectQuery, selectParams)],
-    get('error')
-);
+export const createQueryErrorSelector: SelectorCreator = (selectQuery, selectParams) =>
+    createSelector([createQueryResponseSelector(selectQuery, selectParams)], get('error'));

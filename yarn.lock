@@ -1179,6 +1179,30 @@
   resolved "http://registry.npm.taobao.org/@types/istanbul-lib-coverage/download/@types/istanbul-lib-coverage-2.0.0.tgz#1eb8c033e98cf4e1a4cedcaf8bcafe8cb7591e85"
   integrity sha1-HrjAM+mM9OGkztyvi8r+jLdZHoU=
 
+"@types/json-stable-stringify@^1.0.32":
+  version "1.0.32"
+  resolved "http://registry.npm.taobao.org/@types/json-stable-stringify/download/@types/json-stable-stringify-1.0.32.tgz#121f6917c4389db3923640b2e68de5fa64dda88e"
+  integrity sha1-Eh9pF8Q4nbOSNkCy5o3l+mTdqI4=
+
+"@types/lodash.get@^4.4.6":
+  version "4.4.6"
+  resolved "http://registry.npm.taobao.org/@types/lodash.get/download/@types/lodash.get-4.4.6.tgz#0c7ac56243dae0f9f09ab6f75b29471e2e777240"
+  integrity sha1-DHrFYkPa4Pnwmrb3WylHHi53ckA=
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash.topairs@^4.3.6":
+  version "4.3.6"
+  resolved "http://registry.npm.taobao.org/@types/lodash.topairs/download/@types/lodash.topairs-4.3.6.tgz#6b972d1dfda3646166f1cd659ba085bd3e3770a3"
+  integrity sha1-a5ctHf2jZGFm8c1lm6CFvT43cKM=
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash@*":
+  version "4.14.123"
+  resolved "http://registry.npm.taobao.org/@types/lodash/download/@types/lodash-4.14.123.tgz#39be5d211478c8dd3bdae98ee75bb7efe4abfe4d"
+  integrity sha1-Ob5dIRR4yN072umO51u37+Sr/k0=
+
 "@types/minimatch@*":
   version "3.0.3"
   resolved "http://registry.npm.taobao.org/@types/minimatch/download/@types/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
