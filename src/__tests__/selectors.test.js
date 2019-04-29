@@ -1,9 +1,10 @@
+/* eslint-disable import/no-unresolved */
 import {
     createQuerySelector,
     createQueryResponseSelector,
     createQueryDataSelector,
     createQueryErrorSelector,
-} from '../es';
+} from '../../src';
 
 describe('createQuerySelector should', () => {
     const query = {};

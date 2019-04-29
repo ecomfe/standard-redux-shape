@@ -1,5 +1,6 @@
+/* eslint-disable import/no-unresolved */
 import {isFunction, noop} from 'lodash';
-import {createTableUpdater, updateEntityTable, createTableUpdateReducer} from '../es';
+import {createTableUpdater, updateEntityTable, createTableUpdateReducer} from '../../src';
 
 describe('createTableUpdater should', () => {
     test('be in signature: a -> b', () => {

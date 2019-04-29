@@ -7,7 +7,7 @@
   "types": "es/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "test": "npm run build && skr test --target=node --coverage",
+    "test": "skr test --target=node --coverage",
     "report-cov": "cat coverage/lcov.info | coveralls",
     "lint": "skr lint",
     "prepublishOnly": "yarn run ci",

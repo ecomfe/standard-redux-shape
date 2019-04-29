@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import {isFunction} from 'lodash';
 import stringify from 'json-stable-stringify';
 import {
@@ -8,7 +9,7 @@ import {
     keepEarliest,
     keepEarliestSuccess,
     acceptWhenNoPending,
-} from '../es';
+} from '../../src';
 // types
 const FETCH = 'FETCH';
 const RECEIVE = 'RECEIVE';
