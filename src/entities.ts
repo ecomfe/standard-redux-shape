@@ -13,7 +13,7 @@ import {
     FetchProcessor,
     BasicObject,
     Merger,
-} from '../types';
+} from './interface';
 
 const UPDATE_ENTITY_TABLE = '@@standard-redux-shape/UPDATE_ENTITY_TABLE';
 

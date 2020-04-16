@@ -5,7 +5,7 @@
 
 import {createSelector, OutputSelector, Selector} from 'reselect';
 import stringify from 'json-stable-stringify';
-import {JSONLike} from '../types';
+import {JSONLike} from './interface';
 
 const get = <ReturnType>(name: string) => (source: any) => (source == null ? undefined : (source[name] as ReturnType));
 

@@ -15,7 +15,7 @@ import {
     QueryResultShape,
     ErrorType,
     BasicObject,
-} from '../types';
+} from './interface';
 
 const UNIQUE = '@@standard-redux-shape/NONE_USED';
 
